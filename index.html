@@ -1516,6 +1516,32 @@ if(initList) {
 // 初始化 app 名称和清单标题
 document.getElementById('app-name').textContent = appName;
 document.getElementById('my-lists-label').textContent = listsLabel;
+
+// ── 首次使用预填示例任务 ──
+if (!localStorage.getItem('td_tasks')) {
+  const td = todayStr();
+  const mkId = () => Date.now() + Math.floor(Math.random()*10000);
+  tasks = [
+    { id: mkId(), title: '早咖学习', body: '09:30-09:45，每天15分钟学习新知识', done: false, priority: 'low', dt: td+'T09:30', listId: 'default', repeat: 'daily', createdAt: td },
+    { id: mkId()+1, title: 'AI 探索半小时', body: '探索一个 AI 工具或场景，记录心得', done: false, priority: 'low', dt: td+'T10:00', listId: 'work', repeat: 'daily', createdAt: td },
+  ];
+  save();
+}
+
+// ── 首次使用预填本月目标 ──
+if (!localStorage.getItem('td_goals')) {
+  goals = [
+    { id: '1001', text: '升杆员2026年每周工作 — 人力·升杆员培养看板', done: false },
+    { id: '1002', text: '虾的推送', done: false },
+    { id: '1003', text: 'CLC HR招聘上的2025观察', done: false },
+    { id: '1004', text: '热门AI工具全景指南（分类对比·全覆盖版）', done: false },
+    { id: '1005', text: '每周学习 D+业务与组织研究', done: false },
+    { id: '1006', text: '招聘团队2026年工作讨论', done: false },
+    { id: '1007', text: '财务招聘流程 SOP', done: false },
+  ];
+  saveGoals();
+}
+
 renderGoals();
 render();
 </script>
