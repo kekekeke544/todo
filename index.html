@@ -269,6 +269,18 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .note-toolbar button{padding:6px 14px;border-radius:var(--r-sm);border:none;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer}
 .note-back{background:var(--sb-hover);color:var(--t2)}
 .note-save{background:var(--text);color:#fff}
+.note-toolbar-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.note-rtb{display:flex;align-items:center;gap:2px;flex-wrap:wrap;padding:6px 8px;background:var(--hover);border-radius:6px;border:1px solid var(--border)}
+.rtb-btn{border:none;background:none;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:13px;font-family:var(--font);color:var(--text);min-width:28px;transition:background .1s}
+.rtb-btn:hover{background:var(--border)}
+.rtb-sep{width:1px;height:18px;background:var(--border);margin:0 3px}
+.note-body-editor{flex:1;outline:none;font-size:14px;font-family:var(--font);color:var(--text);line-height:1.7;padding:8px 0;overflow-y:auto;min-height:300px;word-break:break-word}
+.note-body-editor:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
+.note-body-editor h1{font-size:20px;font-weight:700;margin:12px 0 4px}
+.note-body-editor h2{font-size:16px;font-weight:600;margin:10px 0 4px}
+.note-body-editor h3{font-size:14px;font-weight:600;margin:8px 0 4px}
+.note-body-editor a{color:var(--accent);text-decoration:underline}
+.note-body-editor ul,.note-body-editor ol{padding-left:20px}
 
 /* ── VIEW panels ── */
 #task-view{display:flex;flex-direction:column;flex:1;overflow:hidden}
@@ -281,21 +293,29 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 ::-webkit-scrollbar-thumb:hover{background:#bbb}
 
 /* ── WEEK VIEW ── */
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:0 0 20px}
 .week-summary{font-size:13px;color:var(--text);font-weight:600;margin-bottom:16px;line-height:1.6}
-.week-col{display:flex;flex-direction:column}
-.week-col-body{position:relative;height:600px;overflow:hidden;margin-top:4px}
-.week-col-hd{font-size:11px;font-weight:600;color:var(--t3);padding:4px 6px;text-align:center;border-radius:6px;margin-bottom:2px;letter-spacing:.02em}
-.week-col-hd.today{background:var(--text);color:#fff}
-.week-col-hd.past{opacity:.5}
-.week-task{position:absolute;left:0;right:0;min-height:28px;overflow:hidden;padding:4px 6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4;transition:all .1s;box-sizing:border-box}
-.week-task:hover{border-color:#bbb;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.week-task.done{opacity:.45;text-decoration:line-through;color:var(--t3)}
-.week-task.high{border-left:3px solid var(--c-high)}
-.week-task.mid{border-left:3px solid var(--c-mid)}
-.week-task.low{border-left:3px solid var(--c-low)}
-.week-task-time{font-size:10px;color:var(--t3);margin-top:2px}
-.week-no-task{font-size:11px;color:var(--t3);text-align:center;padding:12px 0;opacity:.6}
+.week-timeline{display:flex;overflow:auto;max-height:calc(100vh - 220px);position:relative}
+.wt-time-axis{width:44px;flex-shrink:0;padding-top:36px;/* 36px为列头高度 */}
+.wt-time-slot{height:48px;display:flex;align-items:flex-start;font-size:10px;color:var(--t3);padding-right:6px;text-align:right;box-sizing:border-box;justify-content:flex-end}
+.wt-cols-area{flex:1;display:flex;flex-direction:column;min-width:0}
+.wt-col-hds{display:grid;grid-template-columns:repeat(7,1fr);position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--border)}
+.wt-col-hd{text-align:center;padding:6px 4px;font-size:11px;font-weight:600;color:var(--t3)}
+.wt-col-hd.today{color:var(--accent)}
+.wt-cols-body{display:grid;grid-template-columns:repeat(7,1fr);position:relative;flex:1}
+.wt-col{position:relative;border-right:1px solid var(--border)}
+.wt-col:last-child{border-right:none}
+.wt-hour-line{position:absolute;left:0;right:0;height:1px;background:var(--border);pointer-events:none}
+.wt-task{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;overflow:hidden;box-sizing:border-box;min-height:18px;transition:opacity .1s}
+.wt-task:hover{opacity:.85;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.wt-task.done{opacity:.4;text-decoration:line-through}
+.wt-task-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;line-height:1.3}
+.wt-task-time{font-size:9px;opacity:.8;line-height:1.2}
+.wt-task.high{background:#ffeaea;border-left:3px solid var(--c-high);color:#c0392b}
+.wt-task.mid{background:#fff8e6;border-left:3px solid var(--c-mid);color:#b7791f}
+.wt-task.low{background:#eafaf1;border-left:3px solid var(--c-low);color:#276749}
+.wt-task.none{background:#f0f0f0;border-left:3px solid #ccc;color:#444}
+.wt-now-line{position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:3;pointer-events:none}
+.wt-now-dot{position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
 
 .goals-section{border-top:1px solid var(--border);margin-top:8px;padding:8px 0 4px}
 .goals-header{display:flex;align-items:center;justify-content:space-between;padding:2px 14px 6px;cursor:pointer}
@@ -386,7 +406,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   </div>
 
   <div class="sb-item" data-view="notes" onclick="switchView('notes',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> 资料库 <span class="sc" id="cnt-notes"></span>
+    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> Notes <span class="sc" id="cnt-notes"></span>
   </div>
   <div class="sb-item" data-view="goals" onclick="switchView('goals',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> 目标
@@ -568,10 +588,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <div class="task-list" id="task-list"></div>
   </div>
 
-  <!-- ── 资料库列表 ── -->
+  <!-- ── Notes 列表 ── -->
   <div id="notes-view">
     <div class="header">
-      <h1>资料库</h1>
+      <h1>Notes</h1>
       <div class="meta" id="notes-meta"></div>
     </div>
     <div class="notes-wrap" id="notes-list"></div>
@@ -583,16 +603,33 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
   <!-- ── 笔记编辑 ── -->
   <div id="note-editor-view">
-    <div class="header" style="padding-bottom:14px;flex-shrink:0">
-      <div class="note-toolbar">
+    <div class="header" style="padding-bottom:8px;flex-shrink:0">
+      <div class="note-toolbar-top">
         <button class="note-back" onclick="backToNotes()">← 返回</button>
         <button class="note-save" onclick="saveNote()">保存</button>
         <button class="btn-danger" style="padding:6px 14px;border-radius:6px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:var(--high-bg);color:var(--high)" onclick="deleteNote()">删除</button>
       </div>
+      <!-- 富文本工具栏 -->
+      <div class="note-rtb">
+        <button class="rtb-btn" onclick="rtCmd('bold')" title="加粗"><b>B</b></button>
+        <button class="rtb-btn" onclick="rtCmd('italic')" title="斜体"><i>I</i></button>
+        <button class="rtb-btn" onclick="rtCmd('underline')" title="下划线"><u>U</u></button>
+        <button class="rtb-btn" onclick="rtCmd('strikeThrough')" title="删除线"><s>S</s></button>
+        <div class="rtb-sep"></div>
+        <button class="rtb-btn" onclick="rtCmd('insertUnorderedList')" title="无序列表">≡</button>
+        <button class="rtb-btn" onclick="rtCmd('insertOrderedList')" title="有序列表">1.</button>
+        <div class="rtb-sep"></div>
+        <button class="rtb-btn" onclick="rtHeading(1)" title="H1">H1</button>
+        <button class="rtb-btn" onclick="rtHeading(2)" title="H2">H2</button>
+        <button class="rtb-btn" onclick="rtHeading(3)" title="H3">H3</button>
+        <div class="rtb-sep"></div>
+        <button class="rtb-btn" onclick="rtLink()" title="插入链接">🔗</button>
+        <button class="rtb-btn" onclick="rtCmd('removeFormat')" title="清除格式">T̲</button>
+      </div>
     </div>
     <div class="note-editor">
       <input type="text" id="note-title-input" placeholder="标题"/>
-      <textarea id="note-body-input" placeholder="在这里记录资料、想法…"></textarea>
+      <div id="note-body-editor" class="note-body-editor" contenteditable="true" spellcheck="false" data-placeholder="在这里记录笔记、想法…"></div>
     </div>
   </div>
 
@@ -1968,75 +2005,87 @@ function renderWeekView() {
     <span style="font-size:13px;font-weight:600;color:var(--text)">${rangeText}</span>
     <button onclick="changeWeek(1)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">下周 →</button>
     ${backBtn}
-  </div>
-  <div class="week-summary">本周任务共 ${weekTotal} 件 · 已完成 ${weekDone} 件 · 待完成 ${weekPending} 件 · 逾期 ${weekOverdue} 件</div>`;
+  </div>`;
 
-  const WEEK_COL_H = 600; // px
-  const WEEK_START_H = 8; // 8:00
-  const WEEK_SPAN_MIN = 16 * 60; // 8:00-24:00
+  const HOUR_H = 48; // px per hour
+  const COL_TOTAL_H = HOUR_H * 24; // 1152px
 
-  let html = navHtml + `<div class="week-grid">`;
-  days.forEach((d, i) => {
+  // 生成时间轴 HTML
+  let timeAxisHtml = '<div class="wt-time-axis">';
+  for(let h = 0; h < 24; h++) {
+    timeAxisHtml += `<div class="wt-time-slot">${p2(h)}:00</div>`;
+  }
+  timeAxisHtml += '</div>';
+
+  // 生成列头
+  let colHdsHtml = '<div class="wt-col-hds">';
+  days.forEach((d,i) => {
+    const isToday = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}` === todayStr2;
+    colHdsHtml += `<div class="wt-col-hd ${isToday?'today':''}">${dayNames[i]}<br><span style="font-size:10px;font-weight:400">${p2(d.getMonth()+1)}/${p2(d.getDate())}</span></div>`;
+  });
+  colHdsHtml += '</div>';
+
+  // 生成每天列内容
+  let colsHtml = '<div class="wt-cols-body">';
+  days.forEach((d,i) => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
     const isToday = ds === todayStr2;
-    const isPast = d < nowTs;
-    const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds)).sort((a,b) => {
-      // sort by start time, then priority
-      const aHasTime = a.dt && a.dt.includes('T');
-      const bHasTime = b.dt && b.dt.includes('T');
-      if(aHasTime && bHasTime) return new Date(a.dt) - new Date(b.dt);
-      if(aHasTime) return 1; // timed tasks go below untimed (untimed at top)
-      if(bHasTime) return -1;
-      const pOrd = {high:0,mid:1,low:2,none:3};
-      return (pOrd[a.priority]||3) - (pOrd[b.priority]||3);
-    });
-    html += `<div class="week-col">`;
-    html += `<div class="week-col-hd ${isToday?'today':isPast?'past':''}">${dayNames[i]}<br><span style="font-size:10px;font-weight:400;opacity:.8">${p2(d.getMonth()+1)}/${p2(d.getDate())}</span></div>`;
-    html += `<div class="week-col-body">`;
-    if(dayTasks.length === 0) {
-      html += `<div class="week-no-task" style="position:absolute;left:0;right:0;top:0">空</div>`;
-    } else {
-      let untimedTop = 0;
-      dayTasks.forEach(t => {
-        const hasTime = t.dt && t.dt.includes('T');
-        let topPx, heightPx, timeLabel='';
-        if(hasTime) {
-          const dtObj = new Date(t.dt);
-          const startMin = (dtObj.getHours() - WEEK_START_H) * 60 + dtObj.getMinutes();
-          const clampedStart = Math.max(0, Math.min(startMin, WEEK_SPAN_MIN));
-          topPx = Math.round(clampedStart / WEEK_SPAN_MIN * WEEK_COL_H);
-          // end time
-          let endMin;
-          if(t.dtEnd && t.dtEnd.includes('T')) {
-            const endObj = new Date(t.dtEnd);
-            endMin = (endObj.getHours() - WEEK_START_H) * 60 + endObj.getMinutes();
-          } else {
-            endMin = startMin + 30;
-          }
-          const durationMin = Math.max(15, endMin - startMin);
-          heightPx = Math.max(28, Math.round(durationMin / WEEK_SPAN_MIN * WEEK_COL_H));
-          const startHH = p2(dtObj.getHours()), startMM = p2(dtObj.getMinutes());
-          if(t.dtEnd && t.dtEnd.includes('T')) {
-            const endObj2 = new Date(t.dtEnd);
-            timeLabel = `${startHH}:${startMM}-${p2(endObj2.getHours())}:${p2(endObj2.getMinutes())}`;
-          } else {
-            timeLabel = `${startHH}:${startMM}`;
-          }
-        } else {
-          topPx = untimedTop;
-          heightPx = 36;
-          untimedTop += 38;
-        }
-        html += `<div class="week-task ${t.done?'done':''} ${t.priority||''}" style="top:${topPx}px;height:${heightPx}px" onclick="showEditModal('${t.id}')">
-          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${escHtml(t.title)}</div>
-          ${timeLabel ? `<div class="week-task-time">${timeLabel}</div>` : ''}
-        </div>`;
-      });
+    const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds));
+
+    let colHtml = `<div class="wt-col" style="height:${COL_TOTAL_H}px">`;
+
+    // 每小时分隔线
+    for(let h = 0; h < 24; h++) {
+      colHtml += `<div class="wt-hour-line" style="top:${h*HOUR_H}px"></div>`;
     }
-    html += `</div></div>`;
+
+    // 当前时间线（今天）
+    if(isToday) {
+      const now2 = new Date();
+      const nowMin = now2.getHours()*60 + now2.getMinutes();
+      const nowTop = nowMin * HOUR_H / 60;
+      colHtml += `<div class="wt-now-line" style="top:${nowTop}px"><div class="wt-now-dot"></div></div>`;
+    }
+
+    // 任务卡片
+    dayTasks.forEach(t => {
+      const hasTime = t.dt && t.dt.includes('T');
+      let topPx, heightPx, timeLabel='';
+      if(hasTime) {
+        const dtObj = new Date(t.dt);
+        const startMin = dtObj.getHours()*60 + dtObj.getMinutes();
+        topPx = startMin * HOUR_H / 60;
+        let endMin;
+        if(t.dtEnd && t.dtEnd.includes('T')) {
+          const eObj = new Date(t.dtEnd);
+          endMin = eObj.getHours()*60 + eObj.getMinutes();
+          timeLabel = `${p2(dtObj.getHours())}:${p2(dtObj.getMinutes())}-${p2(eObj.getHours())}:${p2(eObj.getMinutes())}`;
+        } else {
+          endMin = startMin + 30;
+          timeLabel = `${p2(dtObj.getHours())}:${p2(dtObj.getMinutes())}`;
+        }
+        heightPx = Math.max(18, (endMin - startMin) * HOUR_H / 60);
+      } else {
+        topPx = -1;
+        heightPx = 22;
+        timeLabel = '';
+      }
+      if(topPx >= 0) {
+        colHtml += `<div class="wt-task ${t.done?'done':''} ${t.priority||'none'}" style="top:${topPx}px;height:${heightPx}px" onclick="showEditModal('${t.id}')">
+          <div class="wt-task-title">${escHtml(t.title)}</div>
+          ${timeLabel?`<div class="wt-task-time">${timeLabel}</div>`:''}
+        </div>`;
+      }
+    });
+
+    colHtml += '</div>';
+    colsHtml += colHtml;
   });
-  html += `</div>`;
-  main.innerHTML = html;
+  colsHtml += '</div>';
+
+  const bodyHtml = `<div class="week-timeline">${timeAxisHtml}<div class="wt-cols-area">${colHdsHtml}${colsHtml}</div></div>`;
+
+  main.innerHTML = navHtml + `<div class="week-summary">本周任务共 ${weekTotal} 件 · 已完成 ${weekDone} 件 · 待完成 ${weekPending} 件 · 逾期 ${weekOverdue} 件</div>` + bodyHtml;
 }
 function changeWeek(delta) {
   weekOffset = delta === 0 ? 0 : weekOffset + delta;
@@ -2253,34 +2302,35 @@ function deleteList() {
 // ══════════════════════════════════════
 function renderNotes() {
   const meta = document.getElementById('notes-meta');
-  if (meta) meta.textContent = `共 ${notes.length} 条资料`;
+  if (meta) meta.textContent = `共 ${notes.length} 条笔记`;
   const container = document.getElementById('notes-list');
   if (!notes.length) {
-    container.innerHTML = `<div class="empty"><div class="ei">📚</div><div class="et">资料库是空的</div><div class="es">点击下方按钮添加资料</div></div>
-      <button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建资料</button>`;
+    container.innerHTML = `<div class="empty"><div class="ei">📝</div><div class="et">Notes 是空的</div><div class="es">点击下方按钮添加笔记</div></div>
+      <button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建笔记</button>`;
     return;
   }
-  container.innerHTML = notes.map(n =>
-    `<div class="note-card" onclick="openNoteEditor('${n.id}')">
+  container.innerHTML = notes.map(n => {
+    const bodyPreview = (n.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g,' ').trim().slice(0, 100);
+    return `<div class="note-card" onclick="openNoteEditor('${n.id}')">
       <button class="note-del" onclick="event.stopPropagation();deleteNoteById('${n.id}')">✕</button>
       <h3>${escHtml(n.title||'无标题')}</h3>
-      <p>${escHtml(n.body||'')}</p>
+      <p>${escHtml(bodyPreview)}</p>
       <div class="note-meta">${n.updatedAt||n.createdAt||''}</div>
-    </div>`
-  ).join('') + `<button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建资料</button>`;
+    </div>`;
+  }).join('') + `<button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建笔记</button>`;
 }
 function openNoteEditor(id) {
   editingNoteId = id;
   const n = id ? notes.find(n => n.id === id) : null;
   document.getElementById('note-title-input').value = n ? n.title : '';
-  document.getElementById('note-body-input').value  = n ? n.body  : '';
+  document.getElementById('note-body-editor').innerHTML = n ? (n.body || '') : '';
   document.getElementById('notes-view').style.display = 'none';
   document.getElementById('note-editor-view').style.display = 'flex';
-  setTimeout(() => document.getElementById(id ? 'note-body-input':'note-title-input').focus(), 50);
+  setTimeout(() => document.getElementById(id ? 'note-body-editor':'note-title-input').focus(), 50);
 }
 function saveNote() {
   const title = document.getElementById('note-title-input').value.trim() || '无标题';
-  const body  = document.getElementById('note-body-input').value;
+  const body  = document.getElementById('note-body-editor').innerHTML;
   const d = new Date();
   const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
   if (editingNoteId) {
@@ -2290,6 +2340,18 @@ function saveNote() {
     notes.unshift({ id:'note_'+Date.now(), title, body, createdAt: ds, updatedAt: ds });
   }
   save(); backToNotes();
+}
+function rtCmd(cmd, val) {
+  document.getElementById('note-body-editor').focus();
+  document.execCommand(cmd, false, val || null);
+}
+function rtHeading(level) {
+  document.getElementById('note-body-editor').focus();
+  document.execCommand('formatBlock', false, 'h' + level);
+}
+function rtLink() {
+  const url = prompt('输入链接地址：');
+  if(url) document.execCommand('createLink', false, url);
 }
 function deleteNote() {
   if (!editingNoteId) return;
