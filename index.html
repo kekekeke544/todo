@@ -71,6 +71,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 /* ── ADD BAR ── */
 .add-wrap{padding:16px 44px 0;flex-shrink:0}
+.add-wrap.hidden{display:none}
 .add-bar{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg);transition:border-color .15s,box-shadow .15s;gap:0}
 .add-bar:focus-within{border-color:#bbb;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
 .add-plus{padding:0 10px 0 14px;color:var(--t3);font-size:18px;flex-shrink:0;line-height:1}
@@ -2064,27 +2065,27 @@ function switchView(view, el) {
   if (view === 'goals') {
     const gv = document.getElementById('goals-view-panel');
     tv.style.display = 'none'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'flex';
-    document.querySelector('.add-wrap').style.display = 'none';
+
     renderGoalsView();
     return;
   }
   const gv = document.getElementById('goals-view-panel');
   if (view === 'notes') {
     tv.style.display = 'none'; nv.style.display = 'flex'; nev.style.display = 'none'; gv.style.display = 'none';
-    document.querySelector('.add-wrap').style.display = 'none';
+
     renderNotes();
   } else if (view === 'week') {
     tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'none';
-    renderSidebar();
-    updateHeader();
+    document.querySelector('.add-wrap').classList.add('hidden');
     document.getElementById('filter-bar').style.display = 'none';
     document.querySelector('.divider').style.display = 'none';
-    document.querySelector('.add-wrap').style.display = 'none';
+    renderSidebar();
+    updateHeader();
     renderWeekView();
   } else {
+    document.querySelector('.add-wrap').classList.remove('hidden');
     document.getElementById('filter-bar').style.display = '';
     document.querySelector('.divider').style.display = '';
-    document.querySelector('.add-wrap').style.display = '';
     tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'none';
     render();
   }
@@ -2100,7 +2101,7 @@ function switchViewList(id, el) {
   document.getElementById('notes-view').style.display = 'none';
   document.getElementById('note-editor-view').style.display = 'none';
   document.getElementById('goals-view-panel').style.display = 'none';
-  document.querySelector('.add-wrap').style.display = '';
+  document.querySelector('.add-wrap').classList.remove('hidden');
   document.getElementById('filter-bar').style.display = '';
   document.querySelector('.divider').style.display = '';
   render();
