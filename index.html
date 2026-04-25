@@ -442,7 +442,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-ng-warn{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1;flex-shrink:0}
 .goals-ng-warn.active{display:inline-flex !important}
 .goals-ng-item:hover .goals-ng-warn{display:inline-flex}
-.goals-ng-add-row{padding:4px 0 4px 22px}
+.goals-ng-add-row{padding:0 0 0 22px;max-height:0;overflow:hidden;transition:max-height .15s}
+.goals-ng-add-row.open{max-height:36px;padding:4px 0 4px 22px}
+.goals-ng-cat-add-btn{background:none;border:none;cursor:pointer;color:var(--t3);font-size:16px;line-height:1;padding:0 4px;transition:color .1s;font-weight:300}
+.goals-ng-cat-add-btn:hover{color:var(--text)}
 .goals-ng-add-inp{width:100%;border:none;outline:none;font-size:12.5px;font-family:var(--font);color:var(--t2);background:transparent}
 .goals-ng-add-inp::placeholder{color:var(--t3)}
 .goals-ng-new-cat{padding:6px 0 0}
@@ -460,22 +463,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <input id="app-name-input" onblur="saveAppName()" onkeydown="if(event.key==='Enter')saveAppName();if(event.key==='Escape')cancelAppName()" style="display:none;flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;font-weight:700;color:var(--text);min-width:0"/>
   </div>
   <div class="sb-sec">智能清单</div>
-  <div class="sb-item active" data-view="today" onclick="switchView('today',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span> 今天 <span class="sc" id="cnt-today"></span>
-  </div>
-  <div class="sb-item" data-view="week" onclick="switchView('week',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> 本周 <span class="sc" id="cnt-week"></span>
-  </div>
-  <div class="sb-item" data-view="all" onclick="switchView('all',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> 全部任务 <span class="sc" id="cnt-all"></span>
-  </div>
-
-  <div class="sb-item" data-view="notes" onclick="switchView('notes',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> Notes <span class="sc" id="cnt-notes"></span>
-  </div>
-  <div class="sb-item" data-view="goals" onclick="switchView('goals',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> 目标
-  </div>
+  <div id="sb-smart-list"></div>
   <div class="sb-sec" style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding-right:14px">
     <span id="my-lists-label" ondblclick="editListsLabel()" title="双击编辑" style="cursor:text">我的清单</span>
     <input id="my-lists-input" onblur="saveListsLabel()" onkeydown="if(event.key==='Enter')saveListsLabel();if(event.key==='Escape')cancelListsLabel()" style="display:none;border:none;outline:none;background:transparent;font-family:var(--font);font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;width:80px"/>
@@ -867,6 +855,15 @@ let goalsViewYM = (function(){ const d=new Date(); return d.getFullYear()+'-'+('
 let dragSrcId = null;
 
 let curView = 'today', curFilter = 'active';
+const SMART_VIEWS = [
+  { id: 'today', label: '今天', cntId: 'cnt-today', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>' },
+  { id: 'week',  label: '本周', cntId: 'cnt-week',  icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+  { id: 'all',   label: '全部任务', cntId: 'cnt-all',   icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>' },
+  { id: 'notes', label: 'Notes', cntId: 'cnt-notes', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>' },
+  { id: 'goals', label: '目标', cntId: '', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>' },
+];
+let smartOrder = JSON.parse(localStorage.getItem('td_smart_order') || 'null') || SMART_VIEWS.map(v=>v.id);
+function saveSmartOrder() { localStorage.setItem('td_smart_order', JSON.stringify(smartOrder)); }
 let editingListId = null, editingNoteId = null, editingTaskId = null;
 let weekOffset = 0;
 
@@ -1032,6 +1029,7 @@ function renderGoalsView() {
       html += `<div class="goals-ng-cat">`;
       // 分类标题行
       const catDesc = (((goalsNG[goalsViewYM]||{})[col]||{}).__desc__||{})[cat] || '';
+      const catId = col + '_' + escHtml(cat).replace(/[^a-zA-Z0-9]/g,'_');
       html += `<div class="goals-ng-cat-hd">
         <div class="goals-ng-cat-name" contenteditable="true"
           data-col="${col}" data-cat="${escHtml(cat)}"
@@ -1039,6 +1037,7 @@ function renderGoalsView() {
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
         >${escHtml(cat)}</div>
         <span class="goals-ng-cat-stat">${catDone}/${items.length}</span>
+        <button class="goals-ng-cat-add-btn" onclick="openGoalAddRow('${catId}')" title="添加目标">+</button>
         <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1066,9 +1065,10 @@ function renderGoalsView() {
         </div>`;
       });
       // 添加目标输入
-      html += `<div class="goals-ng-add-row">
+      html += `<div class="goals-ng-add-row" id="add-row-${catId}">
         <input class="goals-ng-add-inp" placeholder="添加目标…"
-          onkeydown="if(event.key==='Enter')addGoalNG('${col}','${escHtml(cat)}',this)"/>
+          onkeydown="if(event.key==='Enter')addGoalNG('${col}','${escHtml(cat)}',this);if(event.key==='Escape')closeGoalAddRow('${catId}',this)"
+          onblur="setTimeout(()=>closeGoalAddRow('${catId}',null),150)"/>
       </div>`;
       html += `</div>`; // .goals-ng-cat
     });
@@ -1186,6 +1186,21 @@ function addGoalNG(col, cat, inputEl) {
   data[col][cat].push({ id: String(Date.now() + Math.random()), text, done: false });
   saveGoalsNG();
   renderGoalsView();
+}
+function openGoalAddRow(catId) {
+  const row = document.getElementById('add-row-' + catId);
+  if (!row) return;
+  row.classList.add('open');
+  const inp = row.querySelector('input');
+  if (inp) inp.focus();
+}
+function closeGoalAddRow(catId, inp) {
+  const row = document.getElementById('add-row-' + catId);
+  if (!row) return;
+  const input = inp || row.querySelector('input');
+  if (!input || !input.value.trim()) {
+    row.classList.remove('open');
+  }
 }
 
 function toggleGoalNG(col, cat, id) {
@@ -2299,7 +2314,8 @@ function getRepeatLabel(repeat) {
   return REPEAT_LABELS[repeat]||repeat;
 }
 
-function render() { renderSidebar(); renderTasks(); updateHeader(); }
+function render() { renderSmartList(); renderSidebar(); renderTasks(); updateHeader(); }
+function updateCounts() { renderSmartList(); renderSidebar(); }
 
 function updateHeader() {
   const listObj = lists.find(l => `list:${l.id}` === curView);
@@ -2324,6 +2340,52 @@ function updateHeader() {
   }
 }
 
+function renderSmartList() {
+  const container = document.getElementById('sb-smart-list');
+  if (!container) return;
+  const allIds = SMART_VIEWS.map(v => v.id);
+  allIds.forEach(id => { if (!smartOrder.includes(id)) smartOrder.push(id); });
+  container.innerHTML = smartOrder.map(id => {
+    const v = SMART_VIEWS.find(x => x.id === id);
+    if (!v) return '';
+    return `<div class="sb-item ${curView === id ? 'active' : ''}" data-view="${id}"
+      draggable="true"
+      onclick="switchView('${id}',this)"
+      ondragstart="onSmartDragStart(event,'${id}')"
+      ondragover="onSmartDragOver(event)"
+      ondrop="onSmartDrop(event,'${id}')"
+      ondragend="onSmartDragEnd(event)">
+      <span class="si">${v.icon}</span> ${v.label}${v.cntId ? ` <span class="sc" id="${v.cntId}"></span>` : ''}
+    </div>`;
+  }).join('');
+}
+let _smartDragging = null;
+function onSmartDragStart(e, id) {
+  _smartDragging = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+function onSmartDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+function onSmartDrop(e, targetId) {
+  e.preventDefault();
+  if (!_smartDragging || _smartDragging === targetId) return;
+  const fromIdx = smartOrder.indexOf(_smartDragging);
+  const toIdx = smartOrder.indexOf(targetId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  smartOrder.splice(fromIdx, 1);
+  smartOrder.splice(toIdx, 0, _smartDragging);
+  saveSmartOrder();
+  renderSmartList();
+  updateCounts();
+}
+function onSmartDragEnd(e) {
+  _smartDragging = null;
+  e.currentTarget.style.opacity = '';
+}
+
 function renderSidebar() {
   const tc = tasks.filter(t => !t.done && (isToday(t.dt)||!t.dt||isOverdue(t.dt))).length;
   const ac = tasks.filter(t => !t.done).length;
@@ -2331,6 +2393,7 @@ function renderSidebar() {
   const nc = notes.length;
   const setCnt = (id, n) => {
     const el = document.getElementById(id);
+    if (!el) return;
     el.textContent = n || '';
     el.classList.toggle('visible', n > 0);
   };
