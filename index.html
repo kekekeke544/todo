@@ -155,6 +155,11 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .crp-wd.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .crp-actions{display:flex;gap:6px;justify-content:flex-end}
 .crp-actions button{padding:5px 12px;border-radius:5px;border:none;font-size:12.5px;font-family:var(--font);cursor:pointer;font-weight:500}
+.crp-row{display:flex;align-items:center;gap:8px}
+.crp-label-inline{font-size:12px;color:var(--t3);flex-shrink:0}
+.crp-n-input{width:52px;border:1.5px solid var(--border);border-radius:5px;padding:5px 8px;font-size:13px;font-family:var(--font);outline:none;text-align:center}
+.crp-unit-sel{border:1.5px solid var(--border);border-radius:5px;padding:5px 8px;font-size:13px;font-family:var(--font);outline:none;background:var(--bg);cursor:pointer}
+.crp-end-date{flex:1;border:1.5px solid var(--border);border-radius:5px;padding:5px 8px;font-size:12px;font-family:var(--font);outline:none;color:var(--text)}
 
 .add-btn{margin:5px 6px 5px 4px;background:var(--text);color:#fff;border:none;border-radius:var(--r-sm);padding:7px 18px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
 .add-btn:hover{opacity:.8}
@@ -278,11 +283,12 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 /* ── WEEK VIEW ── */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:0 0 20px}
 .week-summary{font-size:13px;color:var(--text);font-weight:600;margin-bottom:16px;line-height:1.6}
-.week-col{min-height:120px;display:flex;flex-direction:column;gap:6px}
+.week-col{display:flex;flex-direction:column}
+.week-col-body{position:relative;height:600px;overflow:hidden;margin-top:4px}
 .week-col-hd{font-size:11px;font-weight:600;color:var(--t3);padding:4px 6px;text-align:center;border-radius:6px;margin-bottom:2px;letter-spacing:.02em}
 .week-col-hd.today{background:var(--text);color:#fff}
 .week-col-hd.past{opacity:.5}
-.week-task{padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4;transition:all .1s;word-break:break-all}
+.week-task{position:absolute;left:0;right:0;min-height:28px;overflow:hidden;padding:4px 6px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4;transition:all .1s;box-sizing:border-box}
 .week-task:hover{border-color:#bbb;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .week-task.done{opacity:.45;text-decoration:line-through;color:var(--t3)}
 .week-task.high{border-left:3px solid var(--c-high)}
@@ -515,16 +521,17 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
             <div class="repeat-opt" data-val="custom" onclick="selectRepeat('custom',this)">自定义间隔…</div>
           </div>
           <div class="custom-repeat-panel" id="custom-repeat-panel">
-            <div class="crp-label">重复频率</div>
-            <div class="crp-unit-row">
-              <button class="crp-unit-btn active" data-unit="day" onclick="crpSelectUnit('day',this)">天</button>
-              <button class="crp-unit-btn" data-unit="week" onclick="crpSelectUnit('week',this)">周</button>
-              <button class="crp-unit-btn" data-unit="month" onclick="crpSelectUnit('month',this)">月</button>
+            <div class="crp-row">
+              <span class="crp-label-inline">每</span>
+              <input type="number" id="crp-n-input" min="1" max="99" value="1" class="crp-n-input"/>
+              <select id="crp-unit-sel" class="crp-unit-sel" onchange="crpUnitChange()">
+                <option value="day">天</option>
+                <option value="week">周</option>
+                <option value="month">月</option>
+              </select>
             </div>
-            <div class="crp-label">每隔</div>
-            <div class="crp-num-row" id="crp-nums"></div>
-            <div id="crp-week-section" style="display:none">
-              <div class="crp-label">星期</div>
+            <div id="crp-week-days" style="display:none">
+              <div class="crp-label" style="margin-top:8px">重复星期</div>
               <div class="crp-week-row">
                 <div class="crp-wd active" data-wd="1" onclick="crpToggleWd(this)">一</div>
                 <div class="crp-wd" data-wd="2" onclick="crpToggleWd(this)">二</div>
@@ -535,8 +542,12 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
                 <div class="crp-wd" data-wd="0" onclick="crpToggleWd(this)">日</div>
               </div>
             </div>
+            <div class="crp-row" style="margin-top:8px">
+              <span class="crp-label-inline">截止</span>
+              <input type="date" id="crp-end-date" class="crp-end-date" placeholder="无截止日"/>
+            </div>
             <div class="crp-actions">
-              <button style="background:var(--sb-hover);color:var(--t2)" onclick="closeCustomRepeat()">取消</button>
+              <button style="background:var(--sb-hover);color:var(--t2)" onclick="cancelCustomRepeat()">取消</button>
               <button style="background:var(--text);color:#fff" onclick="confirmCustomRepeat()">确定</button>
             </div>
           </div>
@@ -637,16 +648,17 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
           </select>
           <div id="edit-custom-repeat-display" style="display:none;margin-top:4px;font-size:12px;color:var(--accent);cursor:pointer" onclick="openEditCustomRepeat()"></div>
           <div class="custom-repeat-panel" id="edit-custom-repeat-panel">
-            <div class="crp-label">重复频率</div>
-            <div class="crp-unit-row">
-              <button class="crp-unit-btn active" data-eunit="day" onclick="ecrpSelectUnit('day',this)">天</button>
-              <button class="crp-unit-btn" data-eunit="week" onclick="ecrpSelectUnit('week',this)">周</button>
-              <button class="crp-unit-btn" data-eunit="month" onclick="ecrpSelectUnit('month',this)">月</button>
+            <div class="crp-row">
+              <span class="crp-label-inline">每</span>
+              <input type="number" id="ecrp-n-input" min="1" max="99" value="1" class="crp-n-input"/>
+              <select id="ecrp-unit-sel" class="crp-unit-sel" onchange="ecrpUnitChange()">
+                <option value="day">天</option>
+                <option value="week">周</option>
+                <option value="month">月</option>
+              </select>
             </div>
-            <div class="crp-label">每隔</div>
-            <div class="crp-num-row" id="edit-crp-nums"></div>
-            <div id="edit-crp-week-section" style="display:none">
-              <div class="crp-label">星期</div>
+            <div id="ecrp-week-days" style="display:none">
+              <div class="crp-label" style="margin-top:8px">重复星期</div>
               <div class="crp-week-row">
                 <div class="crp-wd active" data-ewd="1" onclick="ecrpToggleWd(this)">一</div>
                 <div class="crp-wd" data-ewd="2" onclick="ecrpToggleWd(this)">二</div>
@@ -656,6 +668,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
                 <div class="crp-wd" data-ewd="6" onclick="ecrpToggleWd(this)">六</div>
                 <div class="crp-wd" data-ewd="0" onclick="ecrpToggleWd(this)">日</div>
               </div>
+            </div>
+            <div class="crp-row" style="margin-top:8px">
+              <span class="crp-label-inline">截止</span>
+              <input type="date" id="ecrp-end-date" class="crp-end-date"/>
             </div>
             <div class="crp-actions">
               <button style="background:var(--sb-hover);color:var(--t2)" onclick="cancelEditCustomRepeat()">取消</button>
@@ -1442,11 +1458,12 @@ function selectRepeat(val, el) {
   if(val === 'custom') {
     document.getElementById('repeat-dd').classList.remove('open');
     // 初始化面板
-    crpUnit = 'day'; crpNum = 1; crpWds = [1];
-    crpRenderNums();
-    document.querySelector('[data-unit="day"]').classList.add('active');
-    document.querySelectorAll('[data-unit]').forEach(e=>{ if(e.dataset.unit!=='day') e.classList.remove('active'); });
-    document.getElementById('crp-week-section').style.display = 'none';
+    crpWds = [1];
+    document.getElementById('crp-n-input').value = 1;
+    document.getElementById('crp-unit-sel').value = 'day';
+    document.getElementById('crp-week-days').style.display = 'none';
+    document.getElementById('crp-end-date').value = '';
+    document.querySelectorAll('#custom-repeat-panel .crp-wd').forEach(e=>e.classList.toggle('active', e.dataset.wd==='1'));
     document.getElementById('custom-repeat-panel').classList.add('open');
     return;
   }
@@ -1457,25 +1474,10 @@ function selectRepeat(val, el) {
   document.getElementById('repeat-dd').classList.remove('open');
 }
 
-let crpUnit='day', crpNum=1, crpWds=[1];
-function crpRenderNums(){
-  const max = crpUnit==='month'?12:crpUnit==='week'?12:30;
-  document.getElementById('crp-nums').innerHTML =
-    Array.from({length:max},(_,i)=>i+1).map(n=>
-      `<div class="crp-num ${n===crpNum?'active':''}" onclick="crpSelectNum(${n},this)">${n}</div>`
-    ).join('');
-}
-function crpSelectUnit(unit, el){
-  crpUnit=unit;
-  document.querySelectorAll('.crp-unit-btn').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('crp-week-section').style.display = unit==='week'?'block':'none';
-  crpRenderNums();
-}
-function crpSelectNum(n, el){
-  crpNum=n;
-  document.querySelectorAll('.crp-num').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
+let crpWds=[1];
+function crpUnitChange(){
+  const unit = document.getElementById('crp-unit-sel').value;
+  document.getElementById('crp-week-days').style.display = unit==='week' ? 'block' : 'none';
 }
 function crpToggleWd(el){
   const wd=parseInt(el.dataset.wd);
@@ -1483,21 +1485,26 @@ function crpToggleWd(el){
   else crpWds.push(wd);
   el.classList.toggle('active', crpWds.includes(wd));
 }
-function closeCustomRepeat(){
+function cancelCustomRepeat(){
   document.getElementById('custom-repeat-panel').classList.remove('open');
 }
 function confirmCustomRepeat(){
+  const n = Math.max(1, parseInt(document.getElementById('crp-n-input').value)||1);
+  const unit = document.getElementById('crp-unit-sel').value;
+  const endDate = document.getElementById('crp-end-date').value;
   const unitMap={day:'天',week:'周',month:'月'};
-  let label;
-  if(crpUnit==='week' && crpWds.length>0){
+  let label, repeatVal;
+  if(unit==='week' && crpWds.length>0){
     const wdNames=['日','一','二','三','四','五','六'];
     const wdStr=crpWds.sort().map(w=>'周'+wdNames[w]).join('、');
-    label = crpNum===1 ? `每周${wdStr}` : `每${crpNum}周${wdStr}`;
-    addRepeat = `custom:week:${crpNum}:${crpWds.sort().join(',')}`;
+    label = n===1 ? `每周${wdStr}` : `每${n}周${wdStr}`;
+    repeatVal = `custom:week:${n}:${crpWds.sort().join(',')}`;
   } else {
-    label = crpNum===1 ? `每${unitMap[crpUnit]}` : `每${crpNum}${unitMap[crpUnit]}`;
-    addRepeat = `custom:${crpUnit}:${crpNum}`;
+    label = n===1 ? `每${unitMap[unit]}` : `每${n}${unitMap[unit]}`;
+    repeatVal = `custom:${unit}:${n}`;
   }
+  if(endDate) repeatVal += `:end:${endDate}`;
+  addRepeat = repeatVal;
   document.getElementById('rpt-label').textContent = label;
   document.getElementById('custom-repeat-panel').classList.remove('open');
 }
@@ -1569,7 +1576,8 @@ function calcNextRepeat(dt, repeat) {
     const unit = parts[1], num = parseInt(parts[2]);
     if(unit==='day') { d.setDate(d.getDate()+num); }
     else if(unit==='week') {
-      const wds = parts[3] ? parts[3].split(',').map(Number) : [1];
+      const wdsPart = (parts[3] && parts[3]!=='end') ? parts[3] : null;
+      const wds = wdsPart ? wdsPart.split(',').map(Number) : [1];
       d.setDate(d.getDate()+1);
       let count=0;
       while(!wds.includes(d.getDay()) && count<14){ d.setDate(d.getDate()+1); count++; }
@@ -1650,7 +1658,7 @@ function hideEditModal() {
   document.getElementById('edit-modal').style.display = 'none';
 }
 // ── 编辑弹窗自定义循环 ──
-let ecrpUnit='day', ecrpNum=1, ecrpWds=[1], editCustomRepeatVal='';
+let ecrpWds=[1], editCustomRepeatVal='';
 
 function onEditRepeatChange(sel) {
   if (sel.value === 'custom') {
@@ -1663,34 +1671,18 @@ function onEditRepeatChange(sel) {
 }
 
 function openEditCustomRepeat() {
-  ecrpUnit='day'; ecrpNum=1; ecrpWds=[1];
-  ecrpRenderNums();
-  document.querySelectorAll('[data-eunit]').forEach(e=>e.classList.remove('active'));
-  document.querySelector('[data-eunit="day"]').classList.add('active');
-  document.getElementById('edit-crp-week-section').style.display='none';
+  ecrpWds=[1];
+  document.getElementById('ecrp-n-input').value = 1;
+  document.getElementById('ecrp-unit-sel').value = 'day';
+  document.getElementById('ecrp-week-days').style.display = 'none';
+  document.getElementById('ecrp-end-date').value = '';
+  document.querySelectorAll('#edit-custom-repeat-panel .crp-wd').forEach(e=>e.classList.toggle('active', e.dataset.ewd==='1'));
   document.getElementById('edit-custom-repeat-panel').classList.add('open');
 }
 
-function ecrpRenderNums() {
-  const max = ecrpUnit==='month'?12:ecrpUnit==='week'?12:30;
-  document.getElementById('edit-crp-nums').innerHTML =
-    Array.from({length:max},(_,i)=>i+1).map(n=>
-      `<div class="crp-num ${n===ecrpNum?'active':''}" onclick="ecrpSelectNum(${n},this)">${n}</div>`
-    ).join('');
-}
-
-function ecrpSelectUnit(unit, el) {
-  ecrpUnit=unit;
-  document.querySelectorAll('[data-eunit]').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('edit-crp-week-section').style.display = unit==='week'?'block':'none';
-  ecrpRenderNums();
-}
-
-function ecrpSelectNum(n, el) {
-  ecrpNum=n;
-  document.querySelectorAll('#edit-crp-nums .crp-num').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');
+function ecrpUnitChange() {
+  const unit = document.getElementById('ecrp-unit-sel').value;
+  document.getElementById('ecrp-week-days').style.display = unit==='week' ? 'block' : 'none';
 }
 
 function ecrpToggleWd(el) {
@@ -1708,24 +1700,29 @@ function cancelEditCustomRepeat() {
 }
 
 function confirmEditCustomRepeat() {
+  const n = Math.max(1, parseInt(document.getElementById('ecrp-n-input').value)||1);
+  const unit = document.getElementById('ecrp-unit-sel').value;
+  const endDate = document.getElementById('ecrp-end-date').value;
   const unitMap={day:'天',week:'周',month:'月'};
-  let label;
-  if(ecrpUnit==='week' && ecrpWds.length>0){
+  let label, repeatVal;
+  if(unit==='week' && ecrpWds.length>0){
     const wdNames=['日','一','二','三','四','五','六'];
     const wdStr=ecrpWds.sort().map(w=>'周'+wdNames[w]).join('、');
-    label = ecrpNum===1?`每周${wdStr}`:`每${ecrpNum}周${wdStr}`;
-    editCustomRepeatVal = `custom:week:${ecrpNum}:${ecrpWds.sort().join(',')}`;
+    label = n===1?`每周${wdStr}`:`每${n}周${wdStr}`;
+    repeatVal = `custom:week:${n}:${ecrpWds.sort().join(',')}`;
   } else {
-    label = ecrpNum===1?`每${unitMap[ecrpUnit]}`:`每${ecrpNum}${unitMap[ecrpUnit]}`;
-    editCustomRepeatVal = `custom:${ecrpUnit}:${ecrpNum}`;
+    label = n===1?`每${unitMap[unit]}`:`每${n}${unitMap[unit]}`;
+    repeatVal = `custom:${unit}:${n}`;
   }
+  if(endDate) repeatVal += `:end:${endDate}`;
+  editCustomRepeatVal = repeatVal;
   document.getElementById('edit-custom-repeat-panel').classList.remove('open');
   const disp = document.getElementById('edit-custom-repeat-display');
   disp.textContent = '✓ ' + label;
   disp.style.display = 'block';
 }
 
-// 加载 custom repeat 时反向解析并展示
+// 加载 custom repeat 时反向解析并展示，同时初始化面板控件
 function loadEditCustomRepeat(repeatVal) {
   if (!repeatVal || !repeatVal.startsWith('custom:')) return;
   editCustomRepeatVal = repeatVal;
@@ -1733,8 +1730,25 @@ function loadEditCustomRepeat(repeatVal) {
   const disp = document.getElementById('edit-custom-repeat-display');
   disp.textContent = '✓ ' + label;
   disp.style.display = 'block';
-  // 把 select 改成 custom
   document.getElementById('edit-repeat').value = 'custom';
+  // 初始化面板控件
+  const parts = repeatVal.split(':');
+  const unit = parts[1], num = parseInt(parts[2])||1;
+  document.getElementById('ecrp-n-input').value = num;
+  document.getElementById('ecrp-unit-sel').value = unit;
+  document.getElementById('ecrp-week-days').style.display = unit==='week' ? 'block' : 'none';
+  if(unit==='week' && parts[3] && !parts[3].startsWith('end')) {
+    ecrpWds = parts[3].split(',').map(Number);
+  } else {
+    ecrpWds = unit==='week' ? [1] : [1];
+  }
+  document.querySelectorAll('#edit-custom-repeat-panel .crp-wd').forEach(e=>{
+    const wd = parseInt(e.dataset.ewd);
+    e.classList.toggle('active', ecrpWds.includes(wd));
+  });
+  // 截止日
+  const endIdx = parts.indexOf('end');
+  document.getElementById('ecrp-end-date').value = endIdx >= 0 ? parts[endIdx+1] : '';
 }
 
 function saveEdit() {
@@ -1788,10 +1802,15 @@ function getRepeatLabel(repeat) {
     const parts = repeat.split(':');
     const unit=parts[1], num=parseInt(parts[2]);
     const unitMap={day:'天',week:'周',month:'月'};
-    if(unit==='week' && parts[3]) {
-      const wdNames=['日','一','二','三','四','五','六'];
-      const wdStr=parts[3].split(',').map(w=>'周'+wdNames[parseInt(w)]).join('、');
-      return num===1?`每周${wdStr}`:`每${num}周${wdStr}`;
+    if(unit==='week') {
+      // parts[3] might be wds or 'end', skip if it's 'end'
+      const wdsPart = (parts[3] && parts[3]!=='end') ? parts[3] : null;
+      if(wdsPart) {
+        const wdNames=['日','一','二','三','四','五','六'];
+        const wdStr=wdsPart.split(',').map(w=>'周'+wdNames[parseInt(w)]).join('、');
+        return num===1?`每周${wdStr}`:`每${num}周${wdStr}`;
+      }
+      return num===1?`每周`:`每${num}周`;
     }
     return num===1?`每${unitMap[unit]||unit}`:`每${num}${unitMap[unit]||unit}`;
   }
@@ -1952,29 +1971,69 @@ function renderWeekView() {
   </div>
   <div class="week-summary">本周任务共 ${weekTotal} 件 · 已完成 ${weekDone} 件 · 待完成 ${weekPending} 件 · 逾期 ${weekOverdue} 件</div>`;
 
+  const WEEK_COL_H = 600; // px
+  const WEEK_START_H = 8; // 8:00
+  const WEEK_SPAN_MIN = 16 * 60; // 8:00-24:00
+
   let html = navHtml + `<div class="week-grid">`;
   days.forEach((d, i) => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
     const isToday = ds === todayStr2;
     const isPast = d < nowTs;
     const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds)).sort((a,b) => {
+      // sort by start time, then priority
+      const aHasTime = a.dt && a.dt.includes('T');
+      const bHasTime = b.dt && b.dt.includes('T');
+      if(aHasTime && bHasTime) return new Date(a.dt) - new Date(b.dt);
+      if(aHasTime) return 1; // timed tasks go below untimed (untimed at top)
+      if(bHasTime) return -1;
       const pOrd = {high:0,mid:1,low:2,none:3};
       return (pOrd[a.priority]||3) - (pOrd[b.priority]||3);
     });
     html += `<div class="week-col">`;
     html += `<div class="week-col-hd ${isToday?'today':isPast?'past':''}">${dayNames[i]}<br><span style="font-size:10px;font-weight:400;opacity:.8">${p2(d.getMonth()+1)}/${p2(d.getDate())}</span></div>`;
+    html += `<div class="week-col-body">`;
     if(dayTasks.length === 0) {
-      html += `<div class="week-no-task">空</div>`;
+      html += `<div class="week-no-task" style="position:absolute;left:0;right:0;top:0">空</div>`;
     } else {
+      let untimedTop = 0;
       dayTasks.forEach(t => {
-        const timeStr = t.dt && t.dt.includes('T') ? t.dt.split('T')[1].slice(0,5) : '';
-        html += `<div class="week-task ${t.done?'done':''} ${t.priority||''}" onclick="showEditModal('${t.id}')">
-          ${escHtml(t.title)}
-          ${timeStr ? `<div class="week-task-time">${timeStr}</div>` : ''}
+        const hasTime = t.dt && t.dt.includes('T');
+        let topPx, heightPx, timeLabel='';
+        if(hasTime) {
+          const dtObj = new Date(t.dt);
+          const startMin = (dtObj.getHours() - WEEK_START_H) * 60 + dtObj.getMinutes();
+          const clampedStart = Math.max(0, Math.min(startMin, WEEK_SPAN_MIN));
+          topPx = Math.round(clampedStart / WEEK_SPAN_MIN * WEEK_COL_H);
+          // end time
+          let endMin;
+          if(t.dtEnd && t.dtEnd.includes('T')) {
+            const endObj = new Date(t.dtEnd);
+            endMin = (endObj.getHours() - WEEK_START_H) * 60 + endObj.getMinutes();
+          } else {
+            endMin = startMin + 30;
+          }
+          const durationMin = Math.max(15, endMin - startMin);
+          heightPx = Math.max(28, Math.round(durationMin / WEEK_SPAN_MIN * WEEK_COL_H));
+          const startHH = p2(dtObj.getHours()), startMM = p2(dtObj.getMinutes());
+          if(t.dtEnd && t.dtEnd.includes('T')) {
+            const endObj2 = new Date(t.dtEnd);
+            timeLabel = `${startHH}:${startMM}-${p2(endObj2.getHours())}:${p2(endObj2.getMinutes())}`;
+          } else {
+            timeLabel = `${startHH}:${startMM}`;
+          }
+        } else {
+          topPx = untimedTop;
+          heightPx = 36;
+          untimedTop += 38;
+        }
+        html += `<div class="week-task ${t.done?'done':''} ${t.priority||''}" style="top:${topPx}px;height:${heightPx}px" onclick="showEditModal('${t.id}')">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${escHtml(t.title)}</div>
+          ${timeLabel ? `<div class="week-task-time">${timeLabel}</div>` : ''}
         </div>`;
       });
     }
-    html += `</div>`;
+    html += `</div></div>`;
   });
   html += `</div>`;
   main.innerHTML = html;
