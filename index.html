@@ -400,32 +400,39 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sp-ctx-item:hover{background:var(--hover)}
 .sp-ctx-sep{height:1px;background:var(--border);margin:3px 0}
 
-/* 目标双列布局 */
-.goals-ng-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:16px 0 40px}
-.goals-ng-col{display:flex;flex-direction:column;gap:12px}
-.goals-ng-col-hd{font-size:15px;font-weight:700;color:var(--text);padding-bottom:8px;border-bottom:2px solid var(--text)}
-.goals-ng-cat{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.goals-ng-cat-hd{display:flex;align-items:center;gap:6px;padding:10px 14px 8px;background:var(--hover)}
-.goals-ng-cat-name{font-size:13px;font-weight:700;color:var(--text);flex:1}
-.goals-ng-cat-prog{font-size:11px;color:var(--t3)}
-.goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:0 4px;display:none}
-.goals-ng-cat-hd:hover .goals-ng-cat-del{display:block}
-.goals-ng-item{display:flex;align-items:center;gap:8px;padding:6px 14px;border-top:1px solid var(--border);transition:background .1s}
+/* 目标双列布局 - Notion 风格 */
+.goals-nav{display:flex;align-items:center;gap:16px;margin:0 0 24px}
+.goals-nav-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:14px;color:var(--t2);transition:background .1s}
+.goals-nav-btn:hover{background:var(--hover)}
+.goals-nav-label{font-size:14px;font-weight:600;color:var(--text);min-width:80px;text-align:center}
+.goals-ng-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;padding:0 0 60px}
+.goals-ng-col{display:flex;flex-direction:column;gap:0}
+.goals-ng-col-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.goals-ng-col-title{font-size:15px;font-weight:700;color:var(--text)}
+.goals-ng-col-stat{font-size:12px;color:var(--t3)}
+.goals-ng-prog-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.goals-ng-prog-fill{height:100%;background:var(--text);border-radius:2px;transition:width .3s}
+.goals-ng-cat{margin-bottom:20px}
+.goals-ng-cat-hd{display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.goals-ng-cat-name{font-size:13px;font-weight:700;color:var(--text);flex:1;outline:none;cursor:text}
+.goals-ng-cat-stat{font-size:11px;color:var(--t3);flex-shrink:0}
+.goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
+.goals-ng-cat-hd:hover .goals-ng-cat-del{display:inline-flex}
+.goals-ng-item{display:flex;align-items:center;gap:8px;padding:5px 0 5px 4px;border-radius:4px;transition:background .1s}
 .goals-ng-item:hover{background:var(--hover)}
 .goals-ng-item.done .goals-ng-text{text-decoration:line-through;color:var(--t3)}
-.goals-ng-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;cursor:pointer;flex-shrink:0;transition:all .1s}
-.goals-ng-check.checked{background:var(--text);border-color:var(--text);position:relative}
-.goals-ng-check.checked:after{content:'✓';position:absolute;top:-2px;left:1px;font-size:10px;color:#fff;font-weight:700}
-.goals-ng-text{flex:1;font-size:13px;color:var(--text);outline:none;min-width:0;word-break:break-word}
-.goals-ng-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:13px;padding:0 2px;display:none}
-.goals-ng-item:hover .goals-ng-del{display:block}
-.goals-ng-add-row{padding:6px 14px;border-top:1px solid var(--border)}
-.goals-ng-add-inp{width:100%;border:none;outline:none;font-size:12px;font-family:var(--font);color:var(--text);background:transparent}
+.goals-ng-check{width:14px;height:14px;border:1.5px solid #ccc;border-radius:3px;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s}
+.goals-ng-check.checked{background:#333;border-color:#333}
+.goals-ng-check.checked:after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.goals-ng-text{flex:1;font-size:13px;color:var(--text);outline:none;min-width:0;word-break:break-word;line-height:1.5}
+.goals-ng-del{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
+.goals-ng-item:hover .goals-ng-del{display:inline-flex}
+.goals-ng-add-row{padding:4px 0 4px 22px}
+.goals-ng-add-inp{width:100%;border:none;outline:none;font-size:12.5px;font-family:var(--font);color:var(--t2);background:transparent}
 .goals-ng-add-inp::placeholder{color:var(--t3)}
-.goals-ng-new-cat{padding:4px 0}
-.goals-ng-new-cat-inp{width:100%;border:none;border-bottom:1px dashed var(--border);outline:none;font-size:12px;font-family:var(--font);color:var(--text);background:transparent;padding:6px 2px}
+.goals-ng-new-cat{padding:6px 0 0}
+.goals-ng-new-cat-inp{width:100%;border:none;outline:none;font-size:12.5px;font-family:var(--font);color:var(--t2);background:transparent;padding:4px 0}
 .goals-ng-new-cat-inp::placeholder{color:var(--t3)}
-.goals-ng-new-cat-inp:focus{border-bottom-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -464,7 +471,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <!-- ── 便签区 ── -->
   <div class="sb-stickies" id="sb-stickies-area">
     <div class="sb-stickies-hd">便签</div>
-    <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="记录常用链接、要点…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)"></div>
+    <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="记录常用链接、要点…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)" onmousedown="handleCtxLinkClick(event)"></div>
     <!-- 右键菜单 -->
     <div class="sp-ctx-menu" id="sp-ctx-menu">
       <div class="sp-ctx-item" onclick="spCtxBold()"><b>B</b> 加粗</div>
@@ -489,6 +496,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
         data-placeholder="在这里写备忘、放链接…"
         oninput="saveHeaderNote()"
         oncontextmenu="onHeaderNoteCtx(event)"
+        onmousedown="handleCtxLinkClick(event)"
         style="font-size:13px;color:var(--t2);margin-top:6px;line-height:1.6;outline:none;min-height:18px;word-break:break-word;white-space:pre-wrap;max-width:680px"></div>
       <button class="header-bg-btn" onclick="toggleHeaderBgPanel(event)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -831,9 +839,14 @@ let goals = JSON.parse(localStorage.getItem('td_goals') || '[]');
 let goalsOpen = localStorage.getItem('td_goals_open') !== 'false';
 let goalsV2 = JSON.parse(localStorage.getItem('td_goalsv2') || '{}');
 let openMonths = JSON.parse(localStorage.getItem('td_goalmonths') || '{}');
-// td_goals_ng = { team: { [catName]: [{id,text,done}] }, personal: { [catName]: [{id,text,done}] } }
-let goalsNG = JSON.parse(localStorage.getItem('td_goals_ng') || 'null') || { team: {}, personal: {} };
+// td_goals_ng = { "2026-04": { team: { [catName]: [{id,text,done}] }, personal: {...} }, ... }
+let goalsNG = JSON.parse(localStorage.getItem('td_goals_ng') || '{}');
 function saveGoalsNG() { localStorage.setItem('td_goals_ng', JSON.stringify(goalsNG)); }
+function getGoalsMonth(ym) {
+  if (!goalsNG[ym]) goalsNG[ym] = { team: {}, personal: {} };
+  return goalsNG[ym];
+}
+let goalsViewYM = (function(){ const d=new Date(); return d.getFullYear()+'-'+(''+(d.getMonth()+1)).padStart(2,'0'); })();
 let dragSrcId = null;
 
 let curView = 'today', curFilter = 'active';
@@ -952,30 +965,56 @@ function saveGoalsV2() {
 
 function renderGoalsView() {
   const main = document.getElementById('goals-view-panel');
-  const d0 = new Date();
+  const data = getGoalsMonth(goalsViewYM);
+  const [yr, mo] = goalsViewYM.split('-').map(Number);
+  const monthLabel = `${yr} 年 ${mo} 月`;
 
   let html = `<div class="view-meta">${formatViewDate()}</div>`;
   html += `<h1 class="view-title">目标管理</h1>`;
-  html += `<div class="goals-ng-wrap">`;
 
+  // 月份导航
+  html += `<div class="goals-nav">
+    <button class="goals-nav-btn" onclick="changeGoalsMonth(-1)">&#8592;</button>
+    <span class="goals-nav-label">${monthLabel}</span>
+    <button class="goals-nav-btn" onclick="changeGoalsMonth(1)">&#8594;</button>
+  </div>`;
+
+  // 双列
+  html += `<div class="goals-ng-wrap">`;
   ['team','personal'].forEach(col => {
-    const label = col === 'team' ? '🏢 团队目标' : '👤 个人目标';
-    const data = goalsNG[col]; // { catName: [{id,text,done}] }
-    const cats = Object.keys(data);
+    const colLabel = col==='team' ? '团队目标' : '个人目标';
+    const cats = data[col] || {};
+    const allItems = Object.values(cats).flat();
+    const total = allItems.length;
+    const done = allItems.filter(x=>x.done).length;
+    const pct = total ? Math.round(done/total*100) : 0;
 
     html += `<div class="goals-ng-col">`;
-    html += `<div class="goals-ng-col-hd">${label}</div>`;
+    // 列标题 + 进度
+    html += `<div class="goals-ng-col-hd">
+      <span class="goals-ng-col-title">${colLabel}</span>
+      <span class="goals-ng-col-stat">${done}/${total}</span>
+    </div>`;
+    html += `<div class="goals-ng-prog-bar"><div class="goals-ng-prog-fill" style="width:${pct}%"></div></div>`;
 
-    // 渲染每个分类
-    cats.forEach(cat => {
-      const items = data[cat] || [];
-      const done = items.filter(x=>x.done).length;
+    // 分类
+    Object.keys(cats).forEach(cat => {
+      const items = cats[cat] || [];
+      const catDone = items.filter(x=>x.done).length;
       html += `<div class="goals-ng-cat">`;
+      // 分类标题行
       html += `<div class="goals-ng-cat-hd">
-        <span class="goals-ng-cat-name">${escHtml(cat)}</span>
-        <span class="goals-ng-cat-prog">${done}/${items.length}</span>
-        <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">×</button>
+        <div class="goals-ng-cat-name" contenteditable="true"
+          data-col="${col}" data-cat="${escHtml(cat)}"
+          onblur="renameGoalCat(this,'${col}','${escHtml(cat)}')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${escHtml(cat)}</div>
+        <span class="goals-ng-cat-stat">${catDone}/${items.length}</span>
+        <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>`;
+      // 目标条目
       items.forEach(g => {
         html += `<div class="goals-ng-item ${g.done?'done':''}">
           <div class="goals-ng-check ${g.done?'checked':''}" onclick="toggleGoalNG('${col}','${escHtml(cat)}','${g.id}')"></div>
@@ -983,44 +1022,65 @@ function renderGoalsView() {
             onblur="saveGoalNGText('${col}','${escHtml(cat)}','${g.id}',this)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
           >${escHtml(g.text)}</div>
-          <button class="goals-ng-del" onclick="deleteGoalNG('${col}','${escHtml(cat)}','${g.id}')">×</button>
+          <button class="goals-ng-del" onclick="deleteGoalNG('${col}','${escHtml(cat)}','${g.id}')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>`;
       });
-      // 添加目标输入行
+      // 添加目标输入
       html += `<div class="goals-ng-add-row">
-        <input class="goals-ng-add-inp" placeholder="+ 添加目标…"
+        <input class="goals-ng-add-inp" placeholder="添加目标…"
           onkeydown="if(event.key==='Enter')addGoalNG('${col}','${escHtml(cat)}',this)"/>
       </div>`;
       html += `</div>`; // .goals-ng-cat
     });
 
-    // 添加新分类
+    // 新建分类
     html += `<div class="goals-ng-new-cat">
-      <input class="goals-ng-new-cat-inp" placeholder="+ 新建分类…"
+      <input class="goals-ng-new-cat-inp" placeholder="+ 新建分类"
         onkeydown="if(event.key==='Enter')addGoalCat('${col}',this)"/>
     </div>`;
 
     html += `</div>`; // .goals-ng-col
   });
-
   html += `</div>`; // .goals-ng-wrap
   main.innerHTML = html;
+}
+
+function changeGoalsMonth(delta) {
+  const [yr, mo] = goalsViewYM.split('-').map(Number);
+  const d = new Date(yr, mo-1+delta, 1);
+  goalsViewYM = d.getFullYear()+'-'+(''+(d.getMonth()+1)).padStart(2,'0');
+  renderGoalsView();
 }
 
 function addGoalCat(col, inputEl) {
   const name = inputEl.value.trim();
   if (!name) return;
-  if (!goalsNG[col][name]) {
-    goalsNG[col][name] = [];
+  const data = getGoalsMonth(goalsViewYM);
+  if (!data[col][name]) {
+    data[col][name] = [];
     saveGoalsNG();
     renderGoalsView();
   }
   inputEl.value = '';
 }
 
+function renameGoalCat(el, col, oldName) {
+  const newName = el.innerText.trim();
+  if (!newName || newName === oldName) return;
+  const data = getGoalsMonth(goalsViewYM);
+  if (data[col][newName]) return; // 已存在
+  data[col][newName] = data[col][oldName] || [];
+  delete data[col][oldName];
+  saveGoalsNG();
+  renderGoalsView();
+}
+
 function deleteGoalCat(col, cat) {
-  if (!confirm(`删除分类「${cat}」及其下所有目标？`)) return;
-  delete goalsNG[col][cat];
+  if (!confirm(`删除分类「${cat}」及其所有目标？`)) return;
+  const data = getGoalsMonth(goalsViewYM);
+  delete data[col][cat];
   saveGoalsNG();
   renderGoalsView();
 }
@@ -1028,27 +1088,31 @@ function deleteGoalCat(col, cat) {
 function addGoalNG(col, cat, inputEl) {
   const text = inputEl.value.trim();
   if (!text) return;
-  if (!goalsNG[col][cat]) goalsNG[col][cat] = [];
-  goalsNG[col][cat].push({ id: Date.now() + Math.random(), text, done: false });
+  const data = getGoalsMonth(goalsViewYM);
+  if (!data[col][cat]) data[col][cat] = [];
+  data[col][cat].push({ id: String(Date.now() + Math.random()), text, done: false });
   saveGoalsNG();
   renderGoalsView();
 }
 
 function toggleGoalNG(col, cat, id) {
-  const arr = goalsNG[col][cat] || [];
-  const g = arr.find(x => String(x.id) == String(id));
+  const data = getGoalsMonth(goalsViewYM);
+  const arr = (data[col][cat] || []);
+  const g = arr.find(x => x.id == id);
   if (g) { g.done = !g.done; saveGoalsNG(); renderGoalsView(); }
 }
 
 function saveGoalNGText(col, cat, id, el) {
-  const arr = goalsNG[col][cat] || [];
-  const g = arr.find(x => String(x.id) == String(id));
-  if (g) { g.text = el.innerText.trim(); saveGoalsNG(); }
+  const data = getGoalsMonth(goalsViewYM);
+  const arr = (data[col][cat] || []);
+  const g = arr.find(x => x.id == id);
+  if (g) { g.text = el.innerText.trim() || g.text; saveGoalsNG(); }
 }
 
 function deleteGoalNG(col, cat, id) {
-  if (!goalsNG[col][cat]) return;
-  goalsNG[col][cat] = goalsNG[col][cat].filter(x => String(x.id) != String(id));
+  const data = getGoalsMonth(goalsViewYM);
+  if (!data[col][cat]) return;
+  data[col][cat] = data[col][cat].filter(x => x.id != id);
   saveGoalsNG();
   renderGoalsView();
 }
@@ -1319,6 +1383,13 @@ function spCtxClear() {
   spCtxRestoreRange();
   document.execCommand('removeFormat', false, null);
   spCtxSave(); spCtxClose();
+}
+function handleCtxLinkClick(e) {
+  const a = e.target.closest('a');
+  if (a && a.href) {
+    e.preventDefault();
+    window.open(a.href, '_blank', 'noopener');
+  }
 }
 document.addEventListener('click', e => {
   const menu = document.getElementById('sp-ctx-menu');
