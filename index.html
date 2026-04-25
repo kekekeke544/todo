@@ -34,7 +34,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sb-item .sc.visible{display:block}
 .sb-item.active .sc{color:var(--t2)}
 
-.sb-lists{padding:0 8px;overflow-y:auto;flex:1;min-height:40px}
+.sb-lists{padding:0 8px;overflow-y:auto;max-height:200px;flex-shrink:0}
 .sb-list-item{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;cursor:pointer;font-size:13.5px;color:var(--t2);transition:background .1s;user-select:none;border-radius:6px;margin:1px 6px}
 .sb-list-item:hover{background:var(--sb-hover);color:var(--text)}
 .sb-list-item.active{background:var(--sb-active);color:var(--text);font-weight:500}
@@ -384,22 +384,27 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-new-month select{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:12.5px;color:var(--text);background:var(--bg);cursor:pointer;outline:none}
 .goals-new-month button{padding:5px 12px;background:var(--text);color:#fff;border:none;border-radius:6px;font-family:var(--font);font-size:12.5px;cursor:pointer;font-weight:500}
 
-.sb-stickies{border-top:1px solid var(--border);padding:10px 10px 8px;margin-top:auto;flex-shrink:0;max-height:260px;display:flex;flex-direction:column}
+.sb-stickies{border-top:1px solid var(--border);padding:10px 10px 8px;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .sb-stickies-hd{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;flex-shrink:0}
-.sticky-add-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:1px 4px;border-radius:3px;color:var(--t3);transition:background .1s}
-.sticky-add-btn:hover{background:var(--border)}
-#sb-stickies-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:4px}
-.sticky-item{border-radius:5px;padding:5px 7px;font-size:12px;display:flex;align-items:flex-start;gap:4px;line-height:1.4;position:relative;group:sticky}
-.sticky-item.link{background:#eef3ff;color:#2c5bd8;cursor:pointer;border:1px solid #d0dcff}
-.sticky-item.link:hover{background:#dce8ff}
-.sticky-item.text{background:#fffbe6;color:var(--text);border:1px solid #f0e68c}
-.sticky-item-icon{flex-shrink:0;font-size:11px;margin-top:1px}
-.sticky-item-body{flex:1;overflow:hidden}
-.sticky-item-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;font-weight:500}
-.sticky-item-text{word-break:break-word;white-space:pre-wrap;font-size:11.5px;color:var(--t2)}
-.sticky-del{display:none;position:absolute;right:4px;top:4px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--t3);padding:0 2px;border-radius:2px;line-height:1}
+.sticky-add-btn{background:none;border:none;cursor:pointer;font-size:11px;padding:2px 6px;border-radius:3px;color:var(--t3);transition:background .1s;font-family:var(--font)}
+.sticky-add-btn:hover{background:var(--border);color:var(--text)}
+#sb-stickies-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:3px}
+.sticky-item{border-radius:4px;padding:5px 8px;font-size:12px;display:flex;align-items:flex-start;gap:5px;line-height:1.5;position:relative;border:1px solid var(--border);background:var(--bg)}
+.sticky-item:hover{border-color:#bbb}
+.sticky-item.link{cursor:pointer;color:var(--accent)}
+.sticky-item.link:hover{background:var(--hover)}
+.sticky-item.text{color:var(--text)}
+.sticky-item-icon{flex-shrink:0;font-size:11px;margin-top:2px;color:var(--t3)}
+.sticky-item-body{flex:1;overflow:hidden;min-width:0}
+.sticky-item-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500}
+.sticky-item-text{word-break:break-word;white-space:pre-wrap;font-size:12px;outline:none;min-width:0;width:100%;color:var(--text)}
+.sticky-del{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:13px;color:var(--t3);padding:0 2px;border-radius:2px;line-height:1}
 .sticky-item:hover .sticky-del{display:block}
-.sticky-del:hover{background:var(--border);color:var(--text)}
+.sticky-del:hover{color:var(--text)}
+.sticky-add-inline{display:flex;align-items:center;gap:6px;padding:4px 0;flex-shrink:0}
+.sticky-inline-input{flex:1;border:none;border-bottom:1px solid var(--border);background:transparent;font-size:12px;font-family:var(--font);color:var(--text);outline:none;padding:2px 0}
+.sticky-inline-input:focus{border-bottom-color:var(--accent)}
+.sticky-inline-input::placeholder{color:var(--t3)}
 </style>
 </head>
 <body>
@@ -438,10 +443,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <!-- ── 便签区 ── -->
   <div class="sb-stickies" id="sb-stickies-area">
     <div class="sb-stickies-hd">
-      <span>📌 便签</span>
+      <span>便签</span>
       <div style="display:flex;gap:4px">
-        <button class="sticky-add-btn" onclick="addStickyLink()" title="添加链接">🔗</button>
-        <button class="sticky-add-btn" onclick="addStickyText()" title="添加文字">✏️</button>
+        <button class="sticky-add-btn" onclick="addStickyLink()" title="添加链接">+ 链接</button>
+        <button class="sticky-add-btn" onclick="addStickyText()" title="添加文字">+ 文字</button>
       </div>
     </div>
     <div id="sb-stickies-list"></div>
@@ -1134,26 +1139,45 @@ function saveStickies() { localStorage.setItem('td_stickies', JSON.stringify(sti
 function renderStickies() {
   const list = document.getElementById('sb-stickies-list');
   if (!list) return;
+  let html = '';
   if (!stickies.length) {
-    list.innerHTML = `<div style="font-size:11px;color:var(--t3);text-align:center;padding:6px 0">暂无便签</div>`;
-    return;
+    html = `<div style="font-size:11px;color:var(--t3);padding:4px 2px">暂无便签</div>`;
+  } else {
+    html = stickies.map(s => {
+      if (s.type === 'link') {
+        let faviconHtml = '';
+        try {
+          const host = new URL(s.url).hostname;
+          faviconHtml = `<img src="https://www.google.com/s2/favicons?sz=16&domain=${encodeURIComponent(host)}" width="12" height="12" style="border-radius:2px;vertical-align:middle;flex-shrink:0" onerror="this.style.display='none'"/>`;
+        } catch(e) {}
+        return `<div class="sticky-item link" onclick="window.open('${escHtml(s.url)}','_blank')" title="${escHtml(s.url)}">
+          <div class="sticky-item-icon">${faviconHtml}</div>
+          <div class="sticky-item-body"><div class="sticky-item-title">${escHtml(s.title || s.url)}</div></div>
+          <button class="sticky-del" onclick="event.stopPropagation();deleteSticky('${s.id}')">×</button>
+        </div>`;
+      } else {
+        return `<div class="sticky-item text">
+          <div class="sticky-item-body">
+            <div class="sticky-item-text" contenteditable="true" data-sticky-id="${s.id}"
+              onblur="saveStickyText(this)"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
+            >${escHtml(s.content)}</div>
+          </div>
+          <button class="sticky-del" onclick="deleteSticky('${s.id}')">×</button>
+        </div>`;
+      }
+    }).join('');
   }
-  list.innerHTML = stickies.map(s => {
-    if (s.type === 'link') {
-      const favicon = s.url ? `https://www.google.com/s2/favicons?sz=16&domain=${encodeURIComponent(new URL(s.url).hostname)}` : '';
-      return `<div class="sticky-item link" onclick="window.open('${escHtml(s.url)}','_blank')" title="${escHtml(s.url)}">
-        <div class="sticky-item-icon">${favicon ? `<img src="${favicon}" width="12" height="12" style="border-radius:2px;vertical-align:middle" onerror="this.style.display='none'"/>` : '🔗'}</div>
-        <div class="sticky-item-body"><div class="sticky-item-title">${escHtml(s.title || s.url)}</div></div>
-        <button class="sticky-del" onclick="event.stopPropagation();deleteSticky('${s.id}')">×</button>
-      </div>`;
-    } else {
-      return `<div class="sticky-item text">
-        <div class="sticky-item-icon">📝</div>
-        <div class="sticky-item-body"><div class="sticky-item-text">${escHtml(s.content)}</div></div>
-        <button class="sticky-del" onclick="deleteSticky('${s.id}')">×</button>
-      </div>`;
-    }
-  }).join('');
+  list.innerHTML = html;
+}
+
+function saveStickyText(el) {
+  const id = el.dataset.stickyId;
+  const s = stickies.find(x => String(x.id) === String(id));
+  if (s) {
+    s.content = el.innerText.trim();
+    saveStickies();
+  }
 }
 
 async function addStickyLink() {
@@ -1174,11 +1198,16 @@ async function addStickyLink() {
 }
 
 function addStickyText() {
-  const text = prompt('输入便签内容：');
-  if (!text || !text.trim()) return;
-  stickies.push({id: Date.now(), type:'text', content: text.trim(), createdAt: new Date().toISOString()});
+  // 直接插入一条空文字便签，渲染后自动聚焦
+  const id = Date.now();
+  stickies.push({id, type:'text', content: '', createdAt: new Date().toISOString()});
   saveStickies();
   renderStickies();
+  // 聚焦到刚新建的 contenteditable
+  setTimeout(() => {
+    const el = document.querySelector(`.sticky-item-text[data-sticky-id="${id}"]`);
+    if (el) el.focus();
+  }, 30);
 }
 
 function deleteSticky(id) {
