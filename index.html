@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Todo · 我的清单</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--sb:#f7f7f5;--sb-hover:#ebebea;--sb-active:#e3e2de;
+  --text:#1a1a1a;--t2:#6b6b6b;--t3:#aaa;--border:#e9e9e7;
+  --hover:#fafaf9;--accent:#2383e2;
+  --high:#e03e2d;--high-bg:#fdf1f0;
+  --mid:#d97706;--mid-bg:#fffbeb;
+  --low:#16a34a;--low-bg:#f0fdf4;
+  --none:#999;--none-bg:#f5f5f5;
+  --r:8px;--r-sm:6px;--r-lg:12px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;overflow:hidden;color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0 12px;flex-shrink:0;overflow:hidden}
+.ws{display:flex;align-items:center;gap:8px;padding:4px 14px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.ws-icon{width:28px;height:28px;background:var(--text);color:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sb-sec{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);padding:10px 14px 3px;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;font-size:13.5px;color:var(--t2);transition:background .1s;user-select:none;border-radius:6px;margin:1px 6px}
+.sb-item:hover{background:var(--sb-hover);color:var(--text)}
+.sb-item.active{background:var(--sb-active);color:var(--text);font-weight:500}
+.sb-item .si{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-item .sc{margin-left:auto;font-size:11px;color:var(--t3);background:var(--sb-active);border-radius:10px;padding:0 6px;min-width:18px;text-align:center;display:none}
+.sb-item .sc.visible{display:block}
+.sb-item.active .sc{color:var(--t2)}
+
+.sb-lists{flex:1;overflow-y:auto}
+.sb-list-item{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;cursor:pointer;font-size:13.5px;color:var(--t2);transition:background .1s;user-select:none;border-radius:6px;margin:1px 6px}
+.sb-list-item:hover{background:var(--sb-hover);color:var(--text)}
+.sb-list-item.active{background:var(--sb-active);color:var(--text);font-weight:500}
+.sb-list-item .li-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-list-item .li-cnt{margin-left:auto;font-size:11px;color:var(--t3);flex-shrink:0}
+.sb-list-item .li-edit-btn{opacity:0;background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;transition:opacity .1s;flex-shrink:0}
+.sb-list-item:hover .li-edit-btn{opacity:1}
+.sb-list-item .li-edit-btn:hover{color:var(--text);background:var(--sb-active)}
+
+.new-list-btn{margin:4px 10px 0;padding:6px 10px;background:transparent;border:none;color:var(--t3);border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:6px;width:calc(100% - 20px)}
+.new-list-btn:hover{background:var(--sb-hover);color:var(--t2)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.header{padding:28px 44px 0;flex-shrink:0}
+.header h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.header .meta{font-size:13px;color:var(--t3);margin-top:3px}
+.header .motto{font-size:13px;color:var(--t2);margin-top:5px;font-style:italic;opacity:.8;line-height:1.5}
+
+/* ── ADD BAR ── */
+.add-wrap{padding:16px 44px 0;flex-shrink:0}
+.add-bar{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg);transition:border-color .15s,box-shadow .15s;gap:0}
+.add-bar:focus-within{border-color:#bbb;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+.add-plus{padding:0 10px 0 14px;color:var(--t3);font-size:18px;flex-shrink:0;line-height:1}
+.add-task-input{flex:1;border:none;outline:none;font-size:14px;font-family:var(--font);background:transparent;color:var(--text);padding:11px 8px 11px 0;min-width:0}
+.add-task-input::placeholder{color:var(--t3)}
+.add-sep{width:1px;height:22px;background:var(--border);flex-shrink:0}
+
+/* ── 优先级自定义下拉 ── */
+.prio-wrapper{position:relative;flex-shrink:0}
+.prio-trigger{display:flex;align-items:center;gap:5px;padding:0 12px;height:44px;cursor:pointer;font-size:13px;color:var(--t2);user-select:none;white-space:nowrap}
+.prio-trigger:hover{color:var(--text)}
+.prio-trigger .prio-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.prio-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;min-width:110px;padding:4px 0;display:none}
+.prio-dropdown.open{display:block}
+.prio-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
+.prio-opt:hover{background:var(--sb-hover)}
+.prio-opt .prio-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.prio-opt.selected{background:var(--sb-active)}
+
+/* ── 日期按钮（只显示日历图标）── */
+.dt-wrapper{position:relative;flex-shrink:0}
+.dt-trigger{display:flex;align-items:center;gap:5px;padding:0 12px;height:44px;cursor:pointer;font-size:13px;color:var(--t2);user-select:none;white-space:nowrap}
+.dt-trigger:hover{color:var(--text)}
+.dt-trigger .dt-icon{font-size:16px;line-height:1}
+.dt-trigger .dt-label{font-size:12.5px;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.dt-popup{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:14px 16px;display:none;min-width:220px}
+.dt-popup.open{display:block}
+.dt-popup label{font-size:11.5px;color:var(--t3);display:block;margin-bottom:5px;font-weight:500}
+.dt-popup input[type="date"]{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;color:var(--text);margin-bottom:10px}
+.dt-popup input[type="date"]:focus{border-color:#aaa}
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.time-chip{padding:5px 4px;border-radius:5px;border:1px solid var(--border);font-size:12px;text-align:center;cursor:pointer;color:var(--t2);transition:all .1s;background:transparent;font-family:var(--font)}
+.time-chip:hover{background:var(--sb-hover);border-color:#bbb;color:var(--text)}
+.time-chip.selected{background:var(--text);color:#fff;border-color:var(--text)}
+.dt-actions{display:flex;gap:6px;justify-content:flex-end}
+.dt-actions button{padding:5px 12px;border-radius:5px;border:none;font-size:12.5px;font-family:var(--font);cursor:pointer;font-weight:500}
+.dt-clear{background:var(--sb-hover);color:var(--t2)}
+.dt-ok{background:var(--text);color:#fff}
+
+/* ── 清单选择 ── */
+.list-sel-wrap{position:relative;flex-shrink:0}
+.list-sel-trigger{display:flex;align-items:center;gap:5px;padding:0 10px;height:44px;cursor:pointer;font-size:13px;color:var(--t2);user-select:none;white-space:nowrap;max-width:100px;overflow:hidden}
+.list-sel-trigger:hover{color:var(--text)}
+.list-sel-trigger .ls-icon{font-size:14px;flex-shrink:0}
+.list-sel-trigger .ls-name{overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.list-sel-dd{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:4px 0;display:none;min-width:120px}
+.list-sel-dd.open{display:block}
+.list-sel-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
+.list-sel-opt:hover{background:var(--sb-hover)}
+.list-sel-opt.selected{background:var(--sb-active)}
+
+/* ── 循环选择 ── */
+.repeat-wrap{position:relative;flex-shrink:0}
+.repeat-trigger{display:flex;align-items:center;gap:4px;padding:0 10px;height:44px;cursor:pointer;font-size:13px;color:var(--t2);user-select:none;white-space:nowrap}
+.repeat-trigger:hover{color:var(--text)}
+.repeat-trigger .rpt-icon{font-size:14px}
+.repeat-trigger .rpt-label{font-size:12px}
+.repeat-dd{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:4px 0;display:none;min-width:120px}
+.repeat-dd.open{display:block}
+.repeat-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
+.repeat-opt:hover{background:var(--sb-hover)}
+.repeat-opt.selected{background:var(--sb-active)}
+
+.add-btn{margin:5px 6px 5px 4px;background:var(--text);color:#fff;border:none;border-radius:var(--r-sm);padding:7px 18px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.add-btn:hover{opacity:.8}
+
+/* ── FILTERS ── */
+.filters{padding:12px 44px 0;display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.chip{padding:4px 13px;border-radius:20px;font-size:12.5px;border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--t2);transition:all .12s;user-select:none;font-family:var(--font)}
+.chip:hover{background:var(--sb-hover);color:var(--text);border-color:#ccc}
+.chip.active{background:var(--text);color:#fff;border-color:var(--text);font-weight:500}
+.divider{margin:12px 44px 0;height:1px;background:var(--border);flex-shrink:0}
+
+/* ── TASK LIST ── */
+.task-list{overflow-y:auto;padding:4px 44px 40px}
+.task-list,.notes-wrap{flex:1}
+
+.section-label{font-size:11.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;padding:16px 0 6px}
+
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:9px 6px 9px 2px;border-radius:var(--r);transition:background .1s;cursor:default}
+.task-item:hover{background:var(--hover)}
+.task-item+.task-item{border-top:1px solid var(--border)}
+.task-item:hover+.task-item{border-top-color:transparent}
+.task-item.done-item{opacity:.4}
+
+.t-check{width:18px;height:18px;border-radius:50%;border:1.5px solid #ccc;cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:10px;color:#fff}
+.t-check:hover{border-color:#888}
+.t-check.checked{background:#888;border-color:#888}
+
+.t-body{flex:1;min-width:0}
+.t-title{font-size:14px;color:var(--text);line-height:1.55;word-break:break-word}
+.task-item.done-item .t-title{text-decoration:line-through;color:var(--t3)}
+.t-title-input{font-size:14px;font-family:var(--font);border:none;outline:none;background:transparent;color:var(--text);width:100%;border-bottom:1.5px solid var(--accent);padding:1px 0}
+.t-meta{display:flex;gap:6px;margin-top:3px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;display:flex;align-items:center;gap:3px}
+.tag .td{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tag-high{background:var(--high-bg);color:var(--high)}
+.tag-mid{background:var(--mid-bg);color:var(--mid)}
+.tag-low{background:var(--low-bg);color:var(--low)}
+.tag-none{background:var(--none-bg);color:var(--none)}
+.tag-date{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:3px}
+.tag-date.overdue{color:var(--high);font-weight:500}
+.tag-list{font-size:11.5px;color:var(--t3)}
+.tag-repeat{font-size:11px;color:#8b5cf6;background:#f5f3ff;padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:2px}
+
+.t-actions{display:flex;gap:2px;opacity:0;transition:opacity .12s;flex-shrink:0;margin-top:1px}
+.task-item:hover .t-actions{opacity:1}
+.t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
+.t-btn:hover{color:var(--text);background:var(--sb-active)}
+.t-btn.del:hover{color:var(--high);background:var(--high-bg)}
+
+/* ── EMPTY ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:var(--t3);gap:8px}
+.empty .ei{font-size:32px;opacity:.4;margin-bottom:4px}
+.empty .et{font-size:14px;font-weight:500;color:var(--t2)}
+.empty .es{font-size:13px}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(2px)}
+.modal{background:var(--bg);border-radius:var(--r-lg);padding:24px;width:380px;box-shadow:0 8px 40px rgba(0,0,0,.13),0 0 0 1px rgba(0,0,0,.05)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal label{font-size:12.5px;color:var(--t2);display:block;margin-bottom:5px;font-weight:500}
+.modal input[type="text"],.modal textarea,.modal select{width:100%;border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:14px;font-family:var(--font);outline:none;color:var(--text);transition:border-color .15s;margin-bottom:14px;background:var(--bg)}
+.modal textarea{resize:vertical;min-height:90px}
+.modal input[type="text"]:focus,.modal textarea:focus,.modal select:focus{border-color:#aaa}
+.icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:14px}
+.icon-opt{width:36px;height:36px;border-radius:6px;border:1.5px solid var(--border);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .1s;background:transparent}
+.icon-opt:hover{background:var(--sb-hover);border-color:#bbb}
+.icon-opt.selected{border-color:var(--accent);background:#e8f2fd}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.modal-actions button{padding:7px 16px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13.5px;font-family:var(--font);font-weight:500;transition:opacity .15s}
+.btn-cancel{background:var(--sb-hover);color:var(--t2)}
+.btn-cancel:hover{background:var(--sb-active);opacity:1}
+.btn-confirm{background:var(--text);color:#fff}
+.btn-confirm:hover{opacity:.8}
+.btn-danger{background:var(--high-bg);color:var(--high)}
+.btn-danger:hover{background:#fce4e2;opacity:1}
+
+/* ── 编辑任务弹窗 ── */
+.edit-modal{width:420px}
+.edit-row{display:flex;gap:10px;margin-bottom:12px}
+.edit-row > div{flex:1}
+.edit-row label{font-size:12px;color:var(--t3);display:block;margin-bottom:4px;font-weight:500}
+.edit-row select,.edit-row input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;background:var(--bg);color:var(--text);margin-bottom:0}
+.edit-row select:focus,.edit-row input:focus{border-color:#aaa}
+
+/* ── NOTES ── */
+.notes-wrap{overflow-y:auto;padding:4px 44px 40px;display:flex;flex-direction:column;gap:12px}
+.note-card{background:var(--hover);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:box-shadow .15s;position:relative}
+.note-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.note-card h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.note-card p{font-size:13px;color:var(--t2);line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:60px;overflow:hidden}
+.note-card .note-meta{font-size:11.5px;color:var(--t3);margin-top:8px}
+.note-del{position:absolute;top:10px;right:10px;opacity:0;background:none;border:none;font-size:16px;color:var(--t3);cursor:pointer;padding:2px 5px;border-radius:4px;transition:opacity .1s}
+.note-card:hover .note-del{opacity:1}
+.note-del:hover{color:var(--high);background:var(--high-bg)}
+.add-note-btn{align-self:flex-start;padding:8px 18px;background:var(--text);color:#fff;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity .15s}
+.add-note-btn:hover{opacity:.8}
+.note-editor{flex:1;display:flex;flex-direction:column;padding:8px 44px 32px;gap:10px;overflow:hidden}
+.note-editor input{font-size:20px;font-weight:600;border:none;outline:none;font-family:var(--font);color:var(--text);border-bottom:1px solid var(--border);padding:6px 0 10px;flex-shrink:0}
+.note-editor textarea{flex:1;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--text);resize:none;line-height:1.7;padding:4px 0}
+.note-toolbar{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.note-toolbar button{padding:6px 14px;border-radius:var(--r-sm);border:none;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer}
+.note-back{background:var(--sb-hover);color:var(--t2)}
+.note-save{background:var(--text);color:#fff}
+
+/* ── VIEW panels ── */
+#task-view{display:flex;flex-direction:column;flex:1;overflow:hidden}
+#notes-view{display:none;flex-direction:column;flex:1;overflow:hidden}
+#note-editor-view{display:none;flex-direction:column;flex:1;overflow:hidden}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#bbb}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="ws">
+    <div class="ws-icon">✓</div>
+    我的清单
+  </div>
+  <div class="sb-sec">智能清单</div>
+  <div class="sb-item active" data-view="today" onclick="switchView('today',this)">
+    <span class="si">☀️</span> 今天 <span class="sc" id="cnt-today"></span>
+  </div>
+  <div class="sb-item" data-view="all" onclick="switchView('all',this)">
+    <span class="si">📋</span> 全部任务 <span class="sc" id="cnt-all"></span>
+  </div>
+  <div class="sb-item" data-view="done" onclick="switchView('done',this)">
+    <span class="si">✅</span> 已完成 <span class="sc" id="cnt-done"></span>
+  </div>
+  <div class="sb-item" data-view="notes" onclick="switchView('notes',this)">
+    <span class="si">📚</span> 资料库 <span class="sc" id="cnt-notes"></span>
+  </div>
+  <div class="sb-sec" style="margin-top:8px">我的清单</div>
+  <div class="sb-lists" id="sb-lists"></div>
+  <button class="new-list-btn" onclick="showListModal(null)">＋ 新建清单</button>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="main-area">
+
+  <!-- ── 任务视图 ── -->
+  <div id="task-view">
+    <div class="header">
+      <h1 id="view-title">今天</h1>
+      <div class="meta" id="view-meta"></div>
+      <div class="motto" id="motto"></div>
+    </div>
+
+    <div class="add-wrap">
+      <div class="add-bar">
+        <div class="add-plus">+</div>
+        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务…" onkeydown="if(event.key==='Enter')addTask()"/>
+        <div class="add-sep"></div>
+        <!-- 优先级 -->
+        <div class="prio-wrapper" id="prio-wrapper">
+          <div class="prio-trigger" id="prio-trigger" onclick="togglePrio()">
+            <div class="prio-dot" id="prio-dot" style="background:#ccc"></div>
+            <span id="prio-label">优先级</span>
+          </div>
+          <div class="prio-dropdown" id="prio-dropdown">
+            <div class="prio-opt selected" data-val="none" onclick="selectPrio('none',this)">
+              <div class="prio-dot" style="background:#ccc"></div>常态
+            </div>
+            <div class="prio-opt" data-val="low" onclick="selectPrio('low',this)">
+              <div class="prio-dot" style="background:#16a34a"></div>普通
+            </div>
+            <div class="prio-opt" data-val="mid" onclick="selectPrio('mid',this)">
+              <div class="prio-dot" style="background:#d97706"></div>重要
+            </div>
+            <div class="prio-opt" data-val="high" onclick="selectPrio('high',this)">
+              <div class="prio-dot" style="background:#e03e2d"></div>紧急
+            </div>
+          </div>
+        </div>
+        <div class="add-sep"></div>
+
+        <!-- 日期时间 -->
+        <div class="dt-wrapper" id="dt-wrapper">
+          <div class="dt-trigger" id="dt-trigger" onclick="toggleDT()">
+            <span class="dt-icon">📅</span>
+            <span class="dt-label" id="dt-label"></span>
+          </div>
+          <div class="dt-popup" id="dt-popup">
+            <label>日期</label>
+            <input type="date" id="dt-date-input" onchange="onDTDateChange()"/>
+            <label>时间</label>
+            <div class="time-grid" id="time-grid"></div>
+            <div class="dt-actions">
+              <button class="dt-clear" onclick="clearDT()">清除</button>
+              <button class="dt-ok" onclick="confirmDT()">确定</button>
+            </div>
+          </div>
+        </div>
+        <div class="add-sep"></div>
+
+        <!-- 清单 -->
+        <div class="list-sel-wrap" id="list-sel-wrap">
+          <div class="list-sel-trigger" id="list-sel-trigger" onclick="toggleListSel()">
+            <span class="ls-icon" id="ls-icon">📌</span>
+            <span class="ls-name" id="ls-name">默认</span>
+          </div>
+          <div class="list-sel-dd" id="list-sel-dd"></div>
+        </div>
+        <div class="add-sep"></div>
+
+        <!-- 循环 -->
+        <div class="repeat-wrap" id="repeat-wrap">
+          <div class="repeat-trigger" id="repeat-trigger" onclick="toggleRepeat()">
+            <span class="rpt-icon">🔁</span>
+            <span class="rpt-label" id="rpt-label">不重复</span>
+          </div>
+          <div class="repeat-dd" id="repeat-dd">
+            <div class="repeat-opt selected" data-val="none" onclick="selectRepeat('none',this)">不重复</div>
+            <div class="repeat-opt" data-val="daily" onclick="selectRepeat('daily',this)">每天</div>
+            <div class="repeat-opt" data-val="weekday" onclick="selectRepeat('weekday',this)">每个工作日</div>
+            <div class="repeat-opt" data-val="weekly" onclick="selectRepeat('weekly',this)">每周</div>
+            <div class="repeat-opt" data-val="monthly" onclick="selectRepeat('monthly',this)">每月</div>
+            <div class="repeat-opt" data-val="yearly" onclick="selectRepeat('yearly',this)">每年</div>
+          </div>
+        </div>
+
+        <button class="add-btn" onclick="addTask()">添加</button>
+      </div>
+    </div>
+
+    <div class="filters" id="filter-bar">
+      <button class="chip active" data-f="active" onclick="setFilter('active',this)">待完成</button>
+      <button class="chip" data-f="all" onclick="setFilter('all',this)">全部</button>
+      <button class="chip" data-f="high" onclick="setFilter('high',this)">紧急优先</button>
+      <button class="chip" data-f="overdue" onclick="setFilter('overdue',this)">已逾期</button>
+      <button class="chip" data-f="done" onclick="setFilter('done',this)">已完成</button>
+    </div>
+    <div class="divider"></div>
+    <div class="task-list" id="task-list"></div>
+  </div>
+
+  <!-- ── 资料库列表 ── -->
+  <div id="notes-view">
+    <div class="header">
+      <h1>资料库</h1>
+      <div class="meta" id="notes-meta"></div>
+    </div>
+    <div class="notes-wrap" id="notes-list"></div>
+  </div>
+
+  <!-- ── 笔记编辑 ── -->
+  <div id="note-editor-view">
+    <div class="header" style="padding-bottom:14px;flex-shrink:0">
+      <div class="note-toolbar">
+        <button class="note-back" onclick="backToNotes()">← 返回</button>
+        <button class="note-save" onclick="saveNote()">保存</button>
+        <button class="btn-danger" style="padding:6px 14px;border-radius:6px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:var(--high-bg);color:var(--high)" onclick="deleteNote()">删除</button>
+      </div>
+    </div>
+    <div class="note-editor">
+      <input type="text" id="note-title-input" placeholder="标题"/>
+      <textarea id="note-body-input" placeholder="在这里记录资料、想法…"></textarea>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Modal: 新建/编辑清单 ── -->
+<div class="overlay" id="list-modal" style="display:none">
+  <div class="modal">
+    <h2 id="list-modal-title">新建清单</h2>
+    <label>清单名称</label>
+    <input type="text" id="list-name-input" placeholder="例如：读书计划" onkeydown="if(event.key==='Enter')confirmList()"/>
+    <label>选择图标</label>
+    <div class="icon-grid" id="icon-grid"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideListModal()">取消</button>
+      <button class="btn-danger" id="list-delete-btn" style="display:none" onclick="deleteList()">删除清单</button>
+      <button class="btn-confirm" onclick="confirmList()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: 编辑任务 ── -->
+<div class="overlay" id="edit-modal" style="display:none">
+  <div class="modal edit-modal">
+    <h2>编辑任务</h2>
+    <label>任务名称</label>
+    <input type="text" id="edit-title" placeholder="任务名称" onkeydown="if(event.key==='Enter')saveEdit()"/>
+    <div class="edit-row">
+      <div>
+        <label>优先级</label>
+        <select id="edit-prio">
+          <option value="none">常态</option>
+          <option value="low">普通</option>
+          <option value="mid">重要</option>
+          <option value="high">紧急</option>
+        </select>
+      </div>
+      <div>
+        <label>循环</label>
+        <select id="edit-repeat">
+          <option value="none">不重复</option>
+          <option value="daily">每天</option>
+          <option value="weekday">每个工作日</option>
+          <option value="weekly">每周</option>
+          <option value="monthly">每月</option>
+          <option value="yearly">每年</option>
+        </select>
+      </div>
+    </div>
+    <div class="edit-row">
+      <div>
+        <label>日期时间</label>
+        <input type="datetime-local" id="edit-dt" step="300"/>
+      </div>
+      <div>
+        <label>所属清单</label>
+        <select id="edit-list"></select>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:6px">
+      <button class="btn-cancel" onclick="hideEditModal()">取消</button>
+      <button class="btn-confirm" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
+let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","icon":"📌"},{"id":"work","name":"工作","icon":"💼"},{"id":"life","name":"生活","icon":"🏡"}]');
+let notes = JSON.parse(localStorage.getItem('td_notes')||'[]');
+
+let curView = 'today', curFilter = 'active';
+let editingListId = null, editingNoteId = null, editingTaskId = null;
+
+// 添加栏内部状态
+let addPrio = 'none';
+let addDT = { date: '', hour: '', min: '' };
+let addListId = lists[0]?.id || 'default';
+let addRepeat = 'none';
+
+const LIST_ICONS = ['📌','💼','🏡','📚','🎯','💡','❤️','🎮','✈️','🍎','🎵','🏋️','💰','🛒','📝','🔬','🌿','⭐','🎨','🔧'];
+
+const PRIO_CFG = {
+  none: { label:'常态', color:'#ccc',     bg:'#f5f5f5', cls:'tag-none' },
+  low:  { label:'普通', color:'#16a34a',  bg:'#f0fdf4', cls:'tag-low'  },
+  mid:  { label:'重要', color:'#d97706',  bg:'#fffbeb', cls:'tag-mid'  },
+  high: { label:'紧急', color:'#e03e2d',  bg:'#fdf1f0', cls:'tag-high' },
+};
+const REPEAT_LABELS = { none:'不重复', daily:'每天', weekday:'每个工作日', weekly:'每周', monthly:'每月', yearly:'每年' };
+
+const MOTTOS = [
+  '今天也是元气满满的打工人！☀️',
+  '工资是甲方给的，快乐是自己找的 🌈',
+  '上班第一步：假装很忙 😎',
+  '努力不一定成功，但摸鱼一定快乐 🐟',
+  '今天的你，比昨天的你更厉害 💪',
+  '打工人的座右铭：干就完了！🚀',
+  '钱不是万能的，但没钱是万万不能的 💰',
+  '今天也要好好吃饭，这是对打工的最高礼遇 🍜',
+  '所谓努力，就是今天比昨天多喝一杯咖啡 ☕',
+  '打工人，打工魂，打工都是人上人 👑',
+  '今天的困难是明天的笑料 😄',
+  '摸鱼是艺术，我是艺术家 🎨',
+  '人生短暂，及时当乐，当乐及时 🎉',
+  '今天也是充满可能性的一天！✨',
+  '加油！你是最棒的打工人 🌟',
+  '工作使我快乐（误）😅',
+  '今天的任务清单不会自己完成，但可以假装 🦊',
+  '打工人的梦想：早日成为不打工的人 🏖️',
+  '今天的你离理想中的自己又近了一步 🎯',
+  '生活不止眼前的报表，还有诗和远方 🌸',
+  '再难也要笑着完成今天的任务 😊',
+  '今天也是普通却不平凡的一天 💫',
+  '打工人，永远年轻，永远热泪盈眶 🥹',
+  '今天少刷一条视频，多完成一个任务 📱→✅',
+];
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function save() {
+  localStorage.setItem('td_tasks', JSON.stringify(tasks));
+  localStorage.setItem('td_lists', JSON.stringify(lists));
+  localStorage.setItem('td_notes', JSON.stringify(notes));
+}
+function p2(n) { return String(n).padStart(2,'0'); }
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+function nowHM() {
+  const d = new Date();
+  // 取整到5分钟
+  const m = Math.round(d.getMinutes()/5)*5;
+  return { h: p2(d.getHours()), m: p2(m >= 60 ? 0 : m) };
+}
+function isToday(dt) { return dt && dt.startsWith(todayStr()); }
+function isOverdue(dt) {
+  if (!dt) return false;
+  return new Date(dt) < new Date();
+}
+function fmtDT(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  const today = todayStr(), dtDate = dt.slice(0,10);
+  const hasTime = dt.includes('T') && dt.length > 10;
+  const timePart = hasTime ? ` ${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
+  const diff = Math.round((new Date(dtDate) - new Date(today)) / 86400000);
+  let datePart;
+  if (diff === 0) datePart = '今天';
+  else if (diff === 1) datePart = '明天';
+  else if (diff === -1) datePart = '昨天';
+  else if (d.getFullYear() === new Date().getFullYear()) datePart = `${d.getMonth()+1}月${d.getDate()}日`;
+  else datePart = dt.slice(0,10);
+  return datePart + timePart;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function buildDTValue(date, h, m) {
+  if (!date) return '';
+  if (!h) return date;
+  return `${date}T${h}:${m||'00'}`;
+}
+
+// ══════════════════════════════════════
+// 优先级下拉
+// ══════════════════════════════════════
+function togglePrio() {
+  closeAllDropdowns('prio-dropdown');
+  document.getElementById('prio-dropdown').classList.toggle('open');
+}
+function selectPrio(val, el) {
+  addPrio = val;
+  document.querySelectorAll('#prio-dropdown .prio-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  const cfg = PRIO_CFG[val];
+  document.getElementById('prio-dot').style.background = cfg.color;
+  document.getElementById('prio-label').textContent = cfg.label;
+  document.getElementById('prio-dropdown').classList.remove('open');
+}
+
+// ══════════════════════════════════════
+// 日期时间弹窗
+// ══════════════════════════════════════
+function buildTimeGrid(selH, selM) {
+  const grid = document.getElementById('time-grid');
+  const times = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      times.push({ h: p2(h), m: p2(m) });
+    }
+  }
+  // 只显示合理范围: 00:00~23:30，每30分一格
+  grid.innerHTML = times.map(t =>
+    `<div class="time-chip ${(t.h===selH&&t.m===selM)?'selected':''}"
+      onclick="selectTime('${t.h}','${t.m}',this)">${t.h}:${t.m}</div>`
+  ).join('');
+}
+function toggleDT() {
+  closeAllDropdowns('dt-popup');
+  const popup = document.getElementById('dt-popup');
+  if (popup.classList.contains('open')) { popup.classList.remove('open'); return; }
+  // 初始化：默认今天
+  if (!addDT.date) {
+    const hm = nowHM();
+    addDT.date = todayStr();
+    addDT.hour = hm.h;
+    addDT.min  = hm.m;
+  }
+  document.getElementById('dt-date-input').value = addDT.date;
+  buildTimeGrid(addDT.hour, addDT.min);
+  popup.classList.add('open');
+  // 滚到选中时间
+  setTimeout(() => {
+    const sel = popup.querySelector('.time-chip.selected');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+  }, 50);
+}
+function onDTDateChange() {
+  addDT.date = document.getElementById('dt-date-input').value;
+}
+function selectTime(h, m, el) {
+  addDT.hour = h; addDT.min = m;
+  document.querySelectorAll('.time-chip').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function clearDT() {
+  addDT = { date:'', hour:'', min:'' };
+  document.getElementById('dt-label').textContent = '';
+  document.getElementById('dt-popup').classList.remove('open');
+}
+function confirmDT() {
+  const label = addDT.date ? fmtDT(buildDTValue(addDT.date, addDT.hour, addDT.min)) : '';
+  document.getElementById('dt-label').textContent = label;
+  document.getElementById('dt-popup').classList.remove('open');
+}
+
+// ══════════════════════════════════════
+// 清单选择下拉
+// ══════════════════════════════════════
+function buildListSelDD() {
+  const dd = document.getElementById('list-sel-dd');
+  dd.innerHTML = lists.map(l =>
+    `<div class="list-sel-opt ${l.id===addListId?'selected':''}" onclick="selectList('${l.id}',this)">
+      <span>${l.icon}</span>${escHtml(l.name)}
+    </div>`
+  ).join('');
+}
+function toggleListSel() {
+  closeAllDropdowns('list-sel-dd');
+  buildListSelDD();
+  document.getElementById('list-sel-dd').classList.toggle('open');
+}
+function selectList(id, el) {
+  addListId = id;
+  const l = lists.find(l => l.id === id);
+  if (l) {
+    document.getElementById('ls-icon').textContent = l.icon;
+    document.getElementById('ls-name').textContent = l.name;
+  }
+  document.querySelectorAll('.list-sel-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('list-sel-dd').classList.remove('open');
+}
+
+// ══════════════════════════════════════
+// 循环下拉
+// ══════════════════════════════════════
+function toggleRepeat() {
+  closeAllDropdowns('repeat-dd');
+  document.getElementById('repeat-dd').classList.toggle('open');
+}
+function selectRepeat(val, el) {
+  addRepeat = val;
+  document.querySelectorAll('#repeat-dd .repeat-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('rpt-label').textContent = val === 'none' ? '不重复' : REPEAT_LABELS[val];
+  document.getElementById('repeat-dd').classList.remove('open');
+}
+
+// 关闭所有下拉（排除当前）
+function closeAllDropdowns(except) {
+  ['prio-dropdown','dt-popup','list-sel-dd','repeat-dd'].forEach(id => {
+    if (id !== except) document.getElementById(id).classList.remove('open');
+  });
+}
+document.addEventListener('click', e => {
+  const wrappers = ['prio-wrapper','dt-wrapper','list-sel-wrap','repeat-wrap'];
+  if (!wrappers.some(id => document.getElementById(id)?.contains(e.target))) {
+    closeAllDropdowns('__none__');
+  }
+});
+
+// ══════════════════════════════════════
+// TASK CRUD
+// ══════════════════════════════════════
+function addTask() {
+  const inp = document.getElementById('task-input');
+  const title = inp.value.trim();
+  if (!title) return;
+  const dtVal = buildDTValue(addDT.date, addDT.hour, addDT.min);
+  tasks.unshift({
+    id: Date.now(), title, done: false,
+    priority: addPrio,
+    dt: dtVal,
+    listId: addListId,
+    repeat: addRepeat,
+    createdAt: todayStr()
+  });
+  save();
+  // reset bar
+  inp.value = '';
+  addDT = { date:'', hour:'', min:'' };
+  document.getElementById('dt-label').textContent = '';
+  selectPrio('none', document.querySelector('#prio-dropdown [data-val="none"]'));
+  selectRepeat('none', document.querySelector('#repeat-dd [data-val="none"]'));
+  render();
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  // 如果是循环任务，完成后生成下一次
+  if (t.done && t.repeat && t.repeat !== 'none' && t.dt) {
+    const nextDt = calcNextRepeat(t.dt, t.repeat);
+    if (nextDt) {
+      tasks.push({
+        id: Date.now(), title: t.title, done: false,
+        priority: t.priority, dt: nextDt, listId: t.listId,
+        repeat: t.repeat, createdAt: todayStr()
+      });
+    }
+  }
+  save(); render();
+}
+
+function calcNextRepeat(dt, repeat) {
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return null;
+  switch (repeat) {
+    case 'daily':   d.setDate(d.getDate() + 1); break;
+    case 'weekday': {
+      d.setDate(d.getDate() + 1);
+      while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+      break;
+    }
+    case 'weekly':  d.setDate(d.getDate() + 7); break;
+    case 'monthly': d.setMonth(d.getMonth() + 1); break;
+    case 'yearly':  d.setFullYear(d.getFullYear() + 1); break;
+    default: return null;
+  }
+  const hasTime = dt.includes('T');
+  if (hasTime) {
+    return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  }
+  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+}
+
+function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
+
+function openEditModal(id) {
+  const t = tasks.find(t => t.id === id); if (!t) return;
+  editingTaskId = id;
+  document.getElementById('edit-title').value = t.title;
+  document.getElementById('edit-prio').value = t.priority || 'none';
+  document.getElementById('edit-repeat').value = t.repeat || 'none';
+  document.getElementById('edit-dt').value = t.dt || '';
+  // 填充清单选项
+  const sel = document.getElementById('edit-list');
+  sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${l.icon} ${escHtml(l.name)}</option>`).join('');
+  document.getElementById('edit-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('edit-title').focus(), 50);
+}
+function hideEditModal() {
+  editingTaskId = null;
+  document.getElementById('edit-modal').style.display = 'none';
+}
+function saveEdit() {
+  const t = tasks.find(t => t.id === editingTaskId); if (!t) return;
+  const title = document.getElementById('edit-title').value.trim();
+  if (title) t.title = title;
+  t.priority = document.getElementById('edit-prio').value;
+  t.repeat   = document.getElementById('edit-repeat').value;
+  t.dt       = document.getElementById('edit-dt').value;
+  t.listId   = document.getElementById('edit-list').value;
+  save(); hideEditModal(); render();
+}
+
+// ══════════════════════════════════════
+// FILTER & SORT
+// ══════════════════════════════════════
+function getVisible() {
+  let r = [...tasks];
+  if (curView === 'today')       r = r.filter(t => !t.done && (isToday(t.dt) || isOverdue(t.dt) || !t.dt));
+  else if (curView === 'done')   r = r.filter(t => t.done);
+  else if (curView === 'all')    {}
+  else if (curView.startsWith('list:')) r = r.filter(t => t.listId === curView.slice(5));
+
+  if (curFilter === 'active')  r = r.filter(t => !t.done);
+  else if (curFilter === 'high')    r = r.filter(t => t.priority === 'high' && !t.done);
+  else if (curFilter === 'overdue') r = r.filter(t => isOverdue(t.dt) && !t.done);
+  else if (curFilter === 'done')    r = r.filter(t => t.done);
+
+  const pO = { high:0, mid:1, low:2, none:3 };
+  r.sort((a,b) => {
+    const pa = pO[a.priority]??3, pb = pO[b.priority]??3;
+    if (pa !== pb) return pa - pb;
+    if (a.dt && b.dt) return new Date(a.dt) - new Date(b.dt);
+    if (a.dt) return -1; if (b.dt) return 1;
+    return b.id - a.id;
+  });
+  return r;
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render() { renderSidebar(); renderTasks(); updateHeader(); }
+
+function updateHeader() {
+  const listObj = lists.find(l => `list:${l.id}` === curView);
+  const titles = { today:'今天', all:'全部任务', done:'已完成' };
+  document.getElementById('view-title').textContent = listObj
+    ? `${listObj.icon} ${listObj.name}`
+    : (titles[curView] || curView);
+  const d = new Date();
+  const days = ['周日','周一','周二','周三','周四','周五','周六'];
+  document.getElementById('view-meta').textContent =
+    `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日 · ${days[d.getDay()]}`;
+  const mottoEl = document.getElementById('motto');
+  if (mottoEl) mottoEl.textContent = MOTTOS[d.getDate() % MOTTOS.length];
+  // 同步清单选择器显示
+  const cur = lists.find(l => l.id === addListId) || lists[0];
+  if (cur) {
+    document.getElementById('ls-icon').textContent = cur.icon;
+    document.getElementById('ls-name').textContent = cur.name;
+  }
+}
+
+function renderSidebar() {
+  const tc = tasks.filter(t => !t.done && (isToday(t.dt)||!t.dt||isOverdue(t.dt))).length;
+  const ac = tasks.filter(t => !t.done).length;
+  const dc = tasks.filter(t => t.done).length;
+  const nc = notes.length;
+  const setCnt = (id, n) => {
+    const el = document.getElementById(id);
+    el.textContent = n || '';
+    el.classList.toggle('visible', n > 0);
+  };
+  setCnt('cnt-today', tc); setCnt('cnt-all', ac); setCnt('cnt-done', dc); setCnt('cnt-notes', nc);
+  document.getElementById('sb-lists').innerHTML = lists.map(l => {
+    const cnt = tasks.filter(t => t.listId === l.id && !t.done).length;
+    const isAct = curView === `list:${l.id}`;
+    return `<div class="sb-list-item ${isAct?'active':''}" onclick="switchViewList('${l.id}',this)">
+      <span class="li-icon">${l.icon}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.name)}</span>
+      ${cnt ? `<span class="li-cnt">${cnt}</span>` : ''}
+      <button class="li-edit-btn" onclick="event.stopPropagation();showListModal('${l.id}')" title="编辑清单">✏️</button>
+    </div>`;
+  }).join('');
+}
+
+function renderTasks() {
+  const container = document.getElementById('task-list');
+  const visible = getVisible();
+  if (!visible.length) {
+    container.innerHTML = `<div class="empty"><div class="ei">✓</div><div class="et">没有任务</div><div class="es">在上方输入框添加新任务</div></div>`;
+    return;
+  }
+  const listMap = Object.fromEntries(lists.map(l => [l.id, l]));
+  container.innerHTML = visible.map(t => {
+    const ov = isOverdue(t.dt) && !t.done;
+    const dtStr = t.dt ? fmtDT(t.dt) : '';
+    const cfg = PRIO_CFG[t.priority] || PRIO_CFG.none;
+    const pTag = (t.priority && t.priority !== 'none')
+      ? `<span class="tag ${cfg.cls}"><div class="td" style="background:${cfg.color}"></div>${cfg.label}</span>` : '';
+    const dTag = dtStr
+      ? `<span class="tag-date ${ov?'overdue':''}">📅 ${escHtml(dtStr)}${ov?' · 逾期':''}</span>` : '';
+    const lObj = listMap[t.listId];
+    const lTag = lObj ? `<span class="tag-list">${lObj.icon} ${escHtml(lObj.name)}</span>` : '';
+    const rTag = (t.repeat && t.repeat !== 'none')
+      ? `<span class="tag-repeat">🔁 ${REPEAT_LABELS[t.repeat]||t.repeat}</span>` : '';
+    return `<div class="task-item ${t.done?'done-item':''}" id="task-${t.id}">
+      <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+      <div class="t-body">
+        <div class="t-title">${escHtml(t.title)}</div>
+        <div class="t-meta">${pTag}${dTag}${rTag}${lTag}</div>
+      </div>
+      <div class="t-actions">
+        <button class="t-btn" onclick="openEditModal(${t.id})" title="编辑">✏️</button>
+        <button class="t-btn del" onclick="deleteTask(${t.id})" title="删除">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// VIEW SWITCHING
+// ══════════════════════════════════════
+function switchView(view, el) {
+  curView = view;
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  curFilter = 'active';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('[data-f="active"]')?.classList.add('active');
+  const tv = document.getElementById('task-view');
+  const nv = document.getElementById('notes-view');
+  const nev = document.getElementById('note-editor-view');
+  if (view === 'notes') {
+    tv.style.display = 'none'; nv.style.display = 'flex'; nev.style.display = 'none';
+    renderNotes();
+  } else {
+    tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none';
+    render();
+  }
+}
+function switchViewList(id, el) {
+  curView = `list:${id}`;
+  document.querySelectorAll('.sb-item,.sb-list-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  curFilter = 'active';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('[data-f="active"]')?.classList.add('active');
+  document.getElementById('task-view').style.display = 'flex';
+  document.getElementById('notes-view').style.display = 'none';
+  document.getElementById('note-editor-view').style.display = 'none';
+  render();
+}
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ══════════════════════════════════════
+// LIST MODAL
+// ══════════════════════════════════════
+function showListModal(id) {
+  editingListId = id || null;
+  const l = id ? lists.find(l => l.id === id) : null;
+  document.getElementById('list-modal-title').textContent = l ? '编辑清单' : '新建清单';
+  document.getElementById('list-name-input').value = l ? l.name : '';
+  document.getElementById('list-delete-btn').style.display = l ? 'block' : 'none';
+  renderIconGrid(l ? l.icon : '📌');
+  document.getElementById('list-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('list-name-input').focus(), 50);
+}
+function hideListModal() {
+  document.getElementById('list-modal').style.display = 'none';
+  editingListId = null;
+}
+function renderIconGrid(selected) {
+  document.getElementById('icon-grid').innerHTML = LIST_ICONS.map(ic =>
+    `<div class="icon-opt ${ic===selected?'selected':''}" onclick="selectIcon(this,'${ic}')">${ic}</div>`
+  ).join('');
+}
+function selectIcon(el) {
+  document.querySelectorAll('.icon-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function getSelectedIcon() {
+  return document.querySelector('.icon-opt.selected')?.textContent || '📌';
+}
+function confirmList() {
+  const name = document.getElementById('list-name-input').value.trim();
+  if (!name) { hideListModal(); return; }
+  const icon = getSelectedIcon();
+  if (editingListId) {
+    const l = lists.find(l => l.id === editingListId);
+    if (l) { l.name = name; l.icon = icon; }
+  } else {
+    const newId = 'list_' + Date.now();
+    lists.push({ id: newId, name, icon });
+    // 切换到新建的清单
+    addListId = newId;
+  }
+  save(); hideListModal(); render();
+}
+function deleteList() {
+  if (!editingListId) return;
+  if (!confirm('确定要删除这个清单吗？清单内的任务将移至「默认」。')) return;
+  tasks = tasks.map(t => t.listId === editingListId ? {...t, listId:'default'} : t);
+  lists = lists.filter(l => l.id !== editingListId);
+  if (curView === `list:${editingListId}`) curView = 'today';
+  if (addListId === editingListId) addListId = lists[0]?.id || 'default';
+  save(); hideListModal(); render();
+}
+
+// ══════════════════════════════════════
+// NOTES
+// ══════════════════════════════════════
+function renderNotes() {
+  const meta = document.getElementById('notes-meta');
+  if (meta) meta.textContent = `共 ${notes.length} 条资料`;
+  const container = document.getElementById('notes-list');
+  if (!notes.length) {
+    container.innerHTML = `<div class="empty"><div class="ei">📚</div><div class="et">资料库是空的</div><div class="es">点击下方按钮添加资料</div></div>
+      <button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建资料</button>`;
+    return;
+  }
+  container.innerHTML = notes.map(n =>
+    `<div class="note-card" onclick="openNoteEditor('${n.id}')">
+      <button class="note-del" onclick="event.stopPropagation();deleteNoteById('${n.id}')">✕</button>
+      <h3>${escHtml(n.title||'无标题')}</h3>
+      <p>${escHtml(n.body||'')}</p>
+      <div class="note-meta">${n.updatedAt||n.createdAt||''}</div>
+    </div>`
+  ).join('') + `<button class="add-note-btn" onclick="openNoteEditor(null)">＋ 新建资料</button>`;
+}
+function openNoteEditor(id) {
+  editingNoteId = id;
+  const n = id ? notes.find(n => n.id === id) : null;
+  document.getElementById('note-title-input').value = n ? n.title : '';
+  document.getElementById('note-body-input').value  = n ? n.body  : '';
+  document.getElementById('notes-view').style.display = 'none';
+  document.getElementById('note-editor-view').style.display = 'flex';
+  setTimeout(() => document.getElementById(id ? 'note-body-input':'note-title-input').focus(), 50);
+}
+function saveNote() {
+  const title = document.getElementById('note-title-input').value.trim() || '无标题';
+  const body  = document.getElementById('note-body-input').value;
+  const d = new Date();
+  const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  if (editingNoteId) {
+    const n = notes.find(n => n.id === editingNoteId);
+    if (n) { n.title = title; n.body = body; n.updatedAt = ds; }
+  } else {
+    notes.unshift({ id:'note_'+Date.now(), title, body, createdAt: ds, updatedAt: ds });
+  }
+  save(); backToNotes();
+}
+function deleteNote() {
+  if (!editingNoteId) return;
+  if (!confirm('确定删除这条资料？')) return;
+  deleteNoteById(editingNoteId); backToNotes();
+}
+function deleteNoteById(id) {
+  notes = notes.filter(n => n.id !== id); save(); renderNotes();
+}
+function backToNotes() {
+  editingNoteId = null;
+  document.getElementById('note-editor-view').style.display = 'none';
+  document.getElementById('notes-view').style.display = 'flex';
+  renderNotes();
+}
+
+// ══════════════════════════════════════
+// MODAL CLOSE ON OVERLAY
+// ══════════════════════════════════════
+document.getElementById('list-modal').addEventListener('click', function(e) { if (e.target===this) hideListModal(); });
+document.getElementById('edit-modal').addEventListener('click',  function(e) { if (e.target===this) hideEditModal(); });
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+// 确保 addListId 有效
+if (!lists.find(l => l.id === addListId)) addListId = lists[0]?.id || 'default';
+render();
+</script>
+</body>
+</html>
