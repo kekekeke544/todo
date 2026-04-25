@@ -238,7 +238,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .btn-danger:hover{background:#fce4e2;opacity:1}
 
 /* ── 编辑任务弹窗 ── */
-.edit-modal{width:420px}
+.edit-modal{width:min(520px,92vw);max-height:90vh;overflow-y:auto}
 .edit-row{display:flex;gap:10px;margin-bottom:12px}
 .edit-row > div{flex:1}
 .edit-row label{font-size:12px;color:var(--t3);display:block;margin-bottom:4px;font-weight:500}
@@ -277,7 +277,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 /* ── WEEK VIEW ── */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:0 0 20px}
-.week-summary{font-size:13px;color:var(--t3);margin-bottom:16px;line-height:1.6}
+.week-summary{font-size:13px;color:var(--text);font-weight:600;margin-bottom:16px;line-height:1.6}
 .week-col{min-height:120px;display:flex;flex-direction:column;gap:6px}
 .week-col-hd{font-size:11px;font-weight:600;color:var(--t3);padding:4px 6px;text-align:center;border-radius:6px;margin-bottom:2px;letter-spacing:.02em}
 .week-col-hd.today{background:var(--text);color:#fff}
@@ -423,7 +423,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <div class="add-wrap">
       <div class="add-bar">
         <div class="add-plus">+</div>
-        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务…" onkeydown="if(event.key==='Enter')addTask()"/>
+        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务… (可拖入链接)" onkeydown="if(event.key==='Enter')addTask()" ondragover="event.preventDefault()" ondrop="onDropLink(event,'task-input')"/>
         <div class="add-sep"></div>
         <!-- 优先级 -->
         <div class="prio-wrapper" id="prio-wrapper">
@@ -612,7 +612,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <label>所属清单</label>
     <select id="edit-list" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);cursor:pointer;outline:none"></select>
     <label>内容备注</label>
-    <textarea id="edit-body" placeholder="详细描述、备注…"></textarea>
+    <textarea id="edit-body" placeholder="详细描述、备注… (可拖入链接)" ondragover="event.preventDefault()" ondrop="onDropLink(event,'edit-body')"></textarea>
     <div class="edit-row">
       <div>
         <label>优先级</label>
@@ -675,7 +675,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
           <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
           <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
         </div>
-        <div class="time-scroller" style="height:120px">
+        <div class="time-scroller" style="height:96px">
           <div class="time-col" id="edit-hour-col"></div>
           <div class="time-col" id="edit-min-col"></div>
         </div>
@@ -687,7 +687,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
           <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
           <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
         </div>
-        <div class="time-scroller" style="height:120px">
+        <div class="time-scroller" style="height:96px">
           <div class="time-col" id="edit-ehour-col"></div>
           <div class="time-col" id="edit-emin-col"></div>
         </div>
@@ -992,6 +992,22 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
+// ── 拖拽链接到输入框 ──
+function onDropLink(e, targetId) {
+  e.preventDefault();
+  const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || '';
+  if (!url || !url.startsWith('http')) return;
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA') {
+    const pos = el.selectionStart || el.value.length;
+    el.value = el.value.slice(0, pos) + url + el.value.slice(pos);
+  } else {
+    el.value = (el.value ? el.value + ' ' : '') + url;
+  }
+  el.focus();
+}
+
 // ── Header 背景设置 ──
 const HEADER_BG_COLORS = [
   { label:'无', value:'' },
@@ -1747,7 +1763,7 @@ function getVisible() {
   else if (curView.startsWith('list:')) r = r.filter(t => t.listId === curView.slice(5));
 
   if (curFilter === 'active')  r = r.filter(t => !t.done);
-  else if (curFilter === 'high')    r = r.filter(t => t.priority === 'high' && !t.done);
+  else if (curFilter === 'high')    r = r.filter(t => (t.priority === 'high' || t.priority === 'mid') && !t.done);
   else if (curFilter === 'overdue') r = r.filter(t => isOverdue(t.dt) && !t.done);
   else if (curFilter === 'done')    r = r.filter(t => t.done);
 
