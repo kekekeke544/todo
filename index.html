@@ -334,6 +334,8 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .gr-del{width:18px;height:18px;background:none;border:none;color:var(--t3);cursor:pointer;opacity:0;display:flex;align-items:center;justify-content:center;border-radius:3px;padding:0;transition:all .1s;font-size:13px;flex-shrink:0}
 .gr-del:hover{color:#e03e2d}
 .goal-add-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--border)}
+.goal-cat-hd{font-size:12px;font-weight:700;color:var(--text);padding:10px 16px 4px;letter-spacing:.03em;text-transform:uppercase}
+.goal-cat-sel{border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:12px;font-family:var(--font);color:var(--text);background:var(--bg);cursor:pointer;outline:none;flex-shrink:0}
 .goal-add-inp{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text)}
 .goal-add-inp::placeholder{color:var(--t3)}
 .goal-add-sub{padding:4px 10px;background:var(--text);color:#fff;border:none;border-radius:5px;font-size:12px;font-family:var(--font);cursor:pointer;font-weight:500}
@@ -858,16 +860,14 @@ function renderGoalsView() {
           </span>
         </div>
         <div class="goals-month-body ${isOpen?'open':''}">
-          ${items.sort((a,b)=>(a.done?1:0)-(b.done?1:0)).map(g => `
-            <div class="goal-row">
-              <div class="gr-check ${g.done?'checked':''}" onclick="toggleGoalItem('${ym}','${g.id}')"></div>
-              <div class="gr-text ${g.done?'done':''}" contenteditable="true"
-                onblur="saveGoalItemText('${ym}','${g.id}',this)"
-                onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${escHtml(g.text)}</div>
-              <button class="gr-del" onclick="deleteGoalItem('${ym}','${g.id}')" title="删除">×</button>
-            </div>`).join('')}
+          ${renderGoalItemsWithCategory(items, ym)}
           <div class="goal-add-bar">
             <input class="goal-add-inp" id="gadd-${ym}" placeholder="添加目标…" onkeydown="if(event.key==='Enter')addGoalItem('${ym}')"/>
+            <select class="goal-cat-sel" id="gcat-${ym}" title="分类">
+              <option value="">无分类</option>
+              ${[...new Set((goalsV2[ym]||[]).map(g=>g.category).filter(Boolean))].map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
+              <option value="__new__">＋ 新分类…</option>
+            </select>
             <button class="goal-add-sub" onclick="addGoalItem('${ym}')">添加</button>
           </div>
         </div>
@@ -877,6 +877,42 @@ function renderGoalsView() {
 
   html += `</div>`;
   main.innerHTML = html;
+}
+
+function renderGoalItemsWithCategory(items, ym) {
+  // 按分类分组
+  const cats = {};
+  const noCat = [];
+  items.forEach(g => {
+    if (g.category) {
+      if (!cats[g.category]) cats[g.category] = [];
+      cats[g.category].push(g);
+    } else {
+      noCat.push(g);
+    }
+  });
+  const sortItems = arr => arr.sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  const renderRow = (g, ym) => `
+    <div class="goal-row">
+      <div class="gr-check ${g.done?'checked':''}" onclick="toggleGoalItem('${ym}','${g.id}')"></div>
+      <div class="gr-text ${g.done?'done':''}" contenteditable="true"
+        onblur="saveGoalItemText('${ym}','${g.id}',this)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${escHtml(g.text)}</div>
+      <button class="gr-del" onclick="deleteGoalItem('${ym}','${g.id}')" title="删除">×</button>
+    </div>`;
+
+  let html = '';
+  // 先渲染有分类的
+  Object.keys(cats).sort().forEach(cat => {
+    html += `<div class="goal-cat-hd">${escHtml(cat)}</div>`;
+    html += sortItems(cats[cat]).map(g => renderRow(g, ym)).join('');
+  });
+  // 无分类的放最后（有分类内容时加小标题）
+  if (Object.keys(cats).length > 0 && noCat.length > 0) {
+    html += `<div class="goal-cat-hd" style="color:var(--t3)">其他</div>`;
+  }
+  html += sortItems(noCat).map(g => renderRow(g, ym)).join('');
+  return html;
 }
 
 function toggleGoalMonth(ym) {
@@ -897,11 +933,16 @@ function addGoalMonth() {
 
 function addGoalItem(ym) {
   const inp = document.getElementById(`gadd-${ym}`);
+  const catSel = document.getElementById(`gcat-${ym}`);
   if (!inp) return;
   const text = inp.value.trim();
   if (!text) return;
+  let cat = catSel ? catSel.value : '';
+  if (cat === '__new__') {
+    cat = prompt('请输入新分类名称：', '') || '';
+  }
   if (!goalsV2[ym]) goalsV2[ym] = [];
-  goalsV2[ym].push({ id: Date.now().toString(), text, done: false });
+  goalsV2[ym].push({ id: Date.now().toString(), text, done: false, category: cat || undefined });
   inp.value = '';
   saveGoalsV2();
   renderGoalsView();
