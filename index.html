@@ -82,7 +82,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .dt-trigger:hover{color:var(--text)}
 .dt-trigger .dt-icon{font-size:16px;line-height:1;display:flex;align-items:center}
 .dt-trigger .dt-label{font-size:12.5px;max-width:90px;overflow:hidden;text-overflow:ellipsis}
-.dt-popup{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:14px 16px;display:none;min-width:220px}
+.dt-popup{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:14px 16px;display:none;min-width:420px}
 .dt-popup.open{display:block}
 .dt-popup label{font-size:11.5px;color:var(--t3);display:block;margin-bottom:5px;font-weight:500}
 .dt-popup input[type="date"]{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;color:var(--text);margin-bottom:10px}
@@ -262,6 +262,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 /* ── WEEK VIEW ── */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:0 0 20px}
+.week-summary{font-size:13px;color:var(--t3);margin-bottom:16px;line-height:1.6}
 .week-col{min-height:120px;display:flex;flex-direction:column;gap:6px}
 .week-col-hd{font-size:11px;font-weight:600;color:var(--t3);padding:4px 6px;text-align:center;border-radius:6px;margin-bottom:2px;letter-spacing:.02em}
 .week-col-hd.today{background:var(--text);color:#fff}
@@ -423,16 +424,31 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
             <span class="dt-label" id="dt-label"></span>
           </div>
           <div class="dt-popup" id="dt-popup">
-            <label>日期</label>
-            <input type="date" id="dt-date-input" onchange="onDTDateChange()"/>
-            <label>时间</label>
-            <div style="display:flex;gap:0;margin-bottom:2px">
-              <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
-              <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
-            </div>
-            <div class="time-scroller">
-              <div class="time-col" id="hour-col"></div>
-              <div class="time-col" id="min-col"></div>
+            <div style="display:flex;gap:12px">
+              <div style="flex:1">
+                <label>开始</label>
+                <input type="date" id="dt-date-input" onchange="onDTDateChange()"/>
+                <div style="display:flex;gap:0;margin-bottom:2px">
+                  <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
+                  <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
+                </div>
+                <div class="time-scroller">
+                  <div class="time-col" id="hour-col"></div>
+                  <div class="time-col" id="min-col"></div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <label>结束</label>
+                <input type="date" id="dt-end-date-input" onchange="onDTEndDateChange()"/>
+                <div style="display:flex;gap:0;margin-bottom:2px">
+                  <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
+                  <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
+                </div>
+                <div class="time-scroller">
+                  <div class="time-col" id="end-hour-col"></div>
+                  <div class="time-col" id="end-min-col"></div>
+                </div>
+              </div>
             </div>
             <div class="dt-actions">
               <button class="dt-clear" onclick="clearDT()">清除</button>
@@ -673,10 +689,11 @@ let dragSrcId = null;
 
 let curView = 'today', curFilter = 'active';
 let editingListId = null, editingNoteId = null, editingTaskId = null;
+let weekOffset = 0;
 
 // 添加栏内部状态
 let addPrio = 'none';
-let addDT = { date: '', hour: '', min: '' };
+let addDT = { date: '', hour: '', min: '', endDate: '', endHour: '', endMin: '' };
 let addListId = lists[0]?.id || 'default';
 let addRepeat = 'none';
 
@@ -1106,7 +1123,7 @@ function buildTimeGrid(selH, selM) {
   hCol.innerHTML = Array.from({length:24},(_,i)=>p2(i)).map(h=>
     `<div class="time-slot ${h===selH?'selected':''}" onclick="selectTime('${h}',null,this)">${h}</div>`
   ).join('');
-  mCol.innerHTML = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>
+  mCol.innerHTML = EDIT_MINS.map(m=>
     `<div class="time-slot ${m===selM?'selected':''}" onclick="selectTime(null,'${m}',this)">${m}</div>`
   ).join('');
   // 滚动到选中
@@ -1116,6 +1133,32 @@ function buildTimeGrid(selH, selM) {
     if(hs) hCol.scrollTop = hs.offsetTop - 60;
     if(ms) mCol.scrollTop = ms.offsetTop - 60;
   }, 50);
+}
+function buildEndTimeGrid(selH, selM) {
+  const hCol = document.getElementById('end-hour-col');
+  const mCol = document.getElementById('end-min-col');
+  hCol.innerHTML = Array.from({length:24},(_,i)=>p2(i)).map(h=>
+    `<div class="time-slot ${h===selH?'selected':''}" onclick="selectEndTime('${h}',null,this)">${h}</div>`
+  ).join('');
+  mCol.innerHTML = EDIT_MINS.map(m=>
+    `<div class="time-slot ${m===selM?'selected':''}" onclick="selectEndTime(null,'${m}',this)">${m}</div>`
+  ).join('');
+  setTimeout(()=>{
+    const hs = hCol.querySelector('.selected');
+    const ms = mCol.querySelector('.selected');
+    if(hs) hCol.scrollTop = hs.offsetTop - 60;
+    if(ms) mCol.scrollTop = ms.offsetTop - 60;
+  }, 50);
+}
+function selectEndTime(h, m, el) {
+  if(h !== null) {
+    addDT.endHour = h;
+    document.querySelectorAll('#end-hour-col .time-slot').forEach(e=>e.classList.remove('selected'));
+  } else {
+    addDT.endMin = m;
+    document.querySelectorAll('#end-min-col .time-slot').forEach(e=>e.classList.remove('selected'));
+  }
+  el.classList.add('selected');
 }
 function toggleDT() {
   closeAllDropdowns('dt-popup');
@@ -1130,10 +1173,21 @@ function toggleDT() {
   }
   document.getElementById('dt-date-input').value = addDT.date;
   buildTimeGrid(addDT.hour, addDT.min);
+  // 初始化结束时间（开始+30min）
+  const startD = new Date(`${addDT.date}T${addDT.hour||'00'}:${addDT.min||'00'}`);
+  startD.setMinutes(startD.getMinutes() + 30);
+  addDT.endDate = `${startD.getFullYear()}-${p2(startD.getMonth()+1)}-${p2(startD.getDate())}`;
+  addDT.endHour = p2(startD.getHours());
+  addDT.endMin  = EDIT_MINS.reduce((a,b)=>Math.abs(parseInt(b)-startD.getMinutes())<Math.abs(parseInt(a)-startD.getMinutes())?b:a);
+  document.getElementById('dt-end-date-input').value = addDT.endDate;
+  buildEndTimeGrid(addDT.endHour, addDT.endMin);
   popup.classList.add('open');
 }
 function onDTDateChange() {
   addDT.date = document.getElementById('dt-date-input').value;
+}
+function onDTEndDateChange() {
+  addDT.endDate = document.getElementById('dt-end-date-input').value;
 }
 function selectTime(h, m, el) {
   if(h !== null) {
@@ -1146,12 +1200,20 @@ function selectTime(h, m, el) {
   el.classList.add('selected');
 }
 function clearDT() {
-  addDT = { date:'', hour:'', min:'' };
+  addDT = { date:'', hour:'', min:'', endDate:'', endHour:'', endMin:'' };
   document.getElementById('dt-label').textContent = '';
   document.getElementById('dt-popup').classList.remove('open');
 }
 function confirmDT() {
-  const label = addDT.date ? fmtDT(buildDTValue(addDT.date, addDT.hour, addDT.min)) : '';
+  let label = '';
+  if (addDT.date) {
+    const startLabel = fmtDT(buildDTValue(addDT.date, addDT.hour, addDT.min));
+    if (addDT.endHour && addDT.endMin) {
+      label = `${startLabel} → ${addDT.endHour}:${addDT.endMin}`;
+    } else {
+      label = startLabel;
+    }
+  }
   document.getElementById('dt-label').textContent = label;
   document.getElementById('dt-popup').classList.remove('open');
 }
@@ -1281,6 +1343,7 @@ function addTask() {
     id: Date.now(), title, done: false,
     priority: addPrio,
     dt: dtVal,
+    dtEnd: buildDTValue(addDT.endDate||addDT.date, addDT.endHour, addDT.endMin) || '',
     listId: addListId,
     repeat: addRepeat,
     createdAt: todayStr()
@@ -1288,7 +1351,7 @@ function addTask() {
   save();
   // reset bar
   inp.value = '';
-  addDT = { date:'', hour:'', min:'' };
+  addDT = { date:'', hour:'', min:'', endDate:'', endHour:'', endMin:'' };
   document.getElementById('dt-label').textContent = '';
   selectPrio('none', document.querySelector('#prio-dropdown [data-val="none"]'));
   selectRepeat('none', document.querySelector('#repeat-dd [data-val="none"]'));
@@ -1652,11 +1715,13 @@ function formatViewDate() {
 
 function renderWeekView() {
   const main = document.getElementById('task-list');
-  // 计算本周一到周日
+  // 计算周一（考虑 weekOffset）
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=日
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  const base = new Date(now);
+  base.setDate(now.getDate() + weekOffset * 7);
+  const dayOfWeek = base.getDay(); // 0=日
+  const monday = new Date(base);
+  monday.setDate(base.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
   monday.setHours(0,0,0,0);
   const days = Array.from({length:7}, (_,i) => {
     const d = new Date(monday);
@@ -1665,20 +1730,48 @@ function renderWeekView() {
   });
   const todayStr2 = todayStr();
   const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+  // 周范围文字
+  const sunday = days[6];
+  const rangeText = `${monday.getMonth()+1}月${monday.getDate()}日 - ${sunday.getMonth()+1}月${sunday.getDate()}日`;
   // 统计本周任务数
-  let weekCount = 0;
+  let weekTotal = 0, weekDone = 0, weekPending = 0, weekOverdue = 0;
+  const nowTs = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   days.forEach(d => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
-    tasks.filter(t => !t.done && t.dt && t.dt.startsWith(ds)).forEach(() => weekCount++);
+    tasks.filter(t => t.dt && t.dt.startsWith(ds)).forEach(t => {
+      weekTotal++;
+      if (t.done) { weekDone++; }
+      else {
+        weekPending++;
+        if (d < nowTs) weekOverdue++;
+      }
+    });
   });
+  // 更新侧边栏计数
   const wkEl = document.getElementById('cnt-week');
-  if(wkEl) wkEl.textContent = weekCount || '';
+  if(wkEl) wkEl.textContent = weekPending || '';
+  // 标题
+  const titleEl = document.querySelector('.view-title');
+  if (titleEl) {
+    titleEl.textContent = weekOffset === 0 ? '本周一览' : weekOffset < 0 ? '历史周览' : '未来周览';
+  }
+  // 翻周导航
+  const backBtn = weekOffset !== 0
+    ? `<button onclick="changeWeek(0)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">回本周</button>`
+    : '';
+  const navHtml = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <button onclick="changeWeek(-1)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">← 上周</button>
+    <span style="font-size:13px;font-weight:600;color:var(--text)">${rangeText}</span>
+    <button onclick="changeWeek(1)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">下周 →</button>
+    ${backBtn}
+  </div>
+  <div class="week-summary">本周任务共 ${weekTotal} 件 · 已完成 ${weekDone} 件 · 待完成 ${weekPending} 件 · 逾期 ${weekOverdue} 件</div>`;
 
-  let html = `<div class="week-grid">`;
+  let html = navHtml + `<div class="week-grid">`;
   days.forEach((d, i) => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
     const isToday = ds === todayStr2;
-    const isPast = d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const isPast = d < nowTs;
     const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds)).sort((a,b) => {
       const pOrd = {high:0,mid:1,low:2,none:3};
       return (pOrd[a.priority]||3) - (pOrd[b.priority]||3);
@@ -1700,6 +1793,10 @@ function renderWeekView() {
   });
   html += `</div>`;
   main.innerHTML = html;
+}
+function changeWeek(delta) {
+  weekOffset = delta === 0 ? 0 : weekOffset + delta;
+  renderWeekView();
 }
 
 function renderTasks() {
