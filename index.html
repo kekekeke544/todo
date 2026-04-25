@@ -2100,6 +2100,9 @@ function switchViewList(id, el) {
   document.getElementById('notes-view').style.display = 'none';
   document.getElementById('note-editor-view').style.display = 'none';
   document.getElementById('goals-view-panel').style.display = 'none';
+  document.querySelector('.add-wrap').style.display = '';
+  document.getElementById('filter-bar').style.display = '';
+  document.querySelector('.divider').style.display = '';
   render();
 }
 function setFilter(f, el) {
