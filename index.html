@@ -448,8 +448,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-ng-cat-stat{font-size:11px;color:var(--t3);flex-shrink:0}
 .goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
 .goals-ng-cat-hd:hover .goals-ng-cat-del{display:inline-flex}
-.goals-ng-cat-desc{width:100%;box-sizing:border-box;border:none;outline:none;resize:none;font-family:var(--font);font-size:12px;color:var(--t2);background:transparent;line-height:1.6;padding:4px 0 6px;min-height:22px;overflow:hidden}
-.goals-ng-cat-desc::placeholder{color:var(--t3)}
+.goals-ng-col-desc{width:100%;box-sizing:border-box;border:none;border-bottom:1px dashed var(--border);outline:none;resize:none;font-family:var(--font);font-size:12.5px;color:var(--t2);background:transparent;line-height:1.6;padding:6px 0 8px;min-height:22px;overflow:hidden;margin-bottom:14px}
+.goals-ng-col-desc::placeholder{color:var(--t3)}
+.goals-ng-col-desc:focus{border-bottom-color:var(--accent)}
 .goals-ng-item{display:flex;align-items:center;gap:8px;padding:5px 0 5px 4px;border-radius:4px;transition:background .1s}
 .goals-ng-item:hover{background:var(--hover)}
 .goals-ng-item.done .goals-ng-text{text-decoration:line-through;color:var(--t3)}
@@ -1014,7 +1015,7 @@ function renderGoalsView() {
   ['team','personal'].forEach(col => {
     const colLabel = col==='team' ? '团队目标' : '个人目标';
     const cats = data[col] || {};
-    const allItems = Object.entries(cats).filter(([k])=>k!=='__desc__').map(([,v])=>v).flat();
+    const allItems = Object.entries(cats).filter(([k])=>k!=='__desc__'&&k!=='__col_desc__').map(([,v])=>v).flat();
     const total = allItems.length;
     const done = allItems.filter(x=>x.done).length;
     const pct = total ? Math.round(done/total*100) : 0;
@@ -1039,13 +1040,19 @@ function renderGoalsView() {
     </div>`;
     html += `<div class="goals-ng-prog-bar"><div class="goals-ng-prog-fill" style="width:${pct}%"></div></div>`;
 
+    // 列总描述框
+    const colDesc = (data[col].__col_desc__) || '';
+    html += `<textarea class="goals-ng-col-desc" placeholder="写下${colLabel}的总目标或整体方向…"
+      onblur="saveColDesc('${col}',this)"
+      oninput="autoResizeCatDesc(this)"
+    >${escHtml(colDesc)}</textarea>`;
+
     // 分类
-    Object.keys(cats).filter(c => c !== '__desc__').forEach(cat => {
+    Object.keys(cats).filter(c => c !== '__desc__' && c !== '__col_desc__').forEach(cat => {
       const items = cats[cat] || [];
       const catDone = items.filter(x=>x.done).length;
       html += `<div class="goals-ng-cat">`;
       // 分类标题行
-      const catDesc = (((goalsNG[goalsViewYM]||{})[col]||{}).__desc__||{})[cat] || '';
       const catId = col + '_' + escHtml(cat).replace(/[^a-zA-Z0-9]/g,'_');
       html += `<div class="goals-ng-cat-hd">
         <div class="goals-ng-cat-name" contenteditable="true"
@@ -1058,11 +1065,7 @@ function renderGoalsView() {
         <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-      </div>
-      <textarea class="goals-ng-cat-desc" placeholder="写下这个分类的总体目标…"
-        onblur="saveCatDesc('${col}','${escHtml(cat)}',this)"
-        oninput="autoResizeCatDesc(this)"
-      >${escHtml(catDesc)}</textarea>`;
+      </div>`;
       // 目标条目（已完成沉底）
       const sortedItems = [...items].sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
       sortedItems.forEach(g => {
@@ -1122,6 +1125,10 @@ function changeGoalsMonth(delta) {
         if (srcCol.__desc__) {
           goalsNG[goalsViewYM][col].__desc__ = Object.assign({}, srcCol.__desc__);
         }
+        // 复制列总描述
+        if (srcCol.__col_desc__) {
+          goalsNG[goalsViewYM][col].__col_desc__ = srcCol.__col_desc__;
+        }
       });
       saveGoalsNG();
     }
@@ -1147,6 +1154,11 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.goals-col-bg-picker').forEach(p => p.classList.remove('show'));
 });
 
+function saveColDesc(col, el) {
+  const data = getGoalsMonth(goalsViewYM);
+  data[col].__col_desc__ = el.value.trim();
+  saveGoalsNG();
+}
 function saveCatDesc(col, cat, el) {
   const data = getGoalsMonth(goalsViewYM);
   if (!data[col].__desc__) data[col].__desc__ = {};
