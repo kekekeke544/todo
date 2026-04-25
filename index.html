@@ -188,6 +188,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
 .t-btn:hover{color:var(--text);background:var(--sb-active)}
 .t-btn.del:hover{color:var(--high);background:var(--high-bg)}
+.t-act-btn{background:none;border:none;cursor:pointer;color:var(--t3);padding:3px 5px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s;opacity:0}
+.t-act-btn:hover{background:var(--sb-hover);color:var(--text)}
+.t-act-btn.t-act-del:hover{color:#e03e2d}
+.task-item:hover .t-act-btn{opacity:1}
 
 /* ── EMPTY ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:var(--t3);gap:8px}
@@ -253,6 +257,21 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:#bbb}
+
+/* ── WEEK VIEW ── */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:0 0 20px}
+.week-col{min-height:120px;display:flex;flex-direction:column;gap:6px}
+.week-col-hd{font-size:11px;font-weight:600;color:var(--t3);padding:4px 6px;text-align:center;border-radius:6px;margin-bottom:2px;letter-spacing:.02em}
+.week-col-hd.today{background:var(--text);color:#fff}
+.week-col-hd.past{opacity:.5}
+.week-task{padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4;transition:all .1s;word-break:break-all}
+.week-task:hover{border-color:#bbb;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.week-task.done{opacity:.45;text-decoration:line-through;color:var(--t3)}
+.week-task.high{border-left:3px solid var(--c-high)}
+.week-task.mid{border-left:3px solid var(--c-mid)}
+.week-task.low{border-left:3px solid var(--c-low)}
+.week-task-time{font-size:10px;color:var(--t3);margin-top:2px}
+.week-no-task{font-size:11px;color:var(--t3);text-align:center;padding:12px 0;opacity:.6}
 </style>
 </head>
 <body>
@@ -267,6 +286,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <div class="sb-sec">智能清单</div>
   <div class="sb-item active" data-view="today" onclick="switchView('today',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></span> 今天 <span class="sc" id="cnt-today"></span>
+  </div>
+  <div class="sb-item" data-view="week" onclick="switchView('week',this)">
+    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> 本周 <span class="sc" id="cnt-week"></span>
   </div>
   <div class="sb-item" data-view="all" onclick="switchView('all',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> 全部任务 <span class="sc" id="cnt-all"></span>
@@ -651,6 +673,17 @@ function fmtDT(dt) {
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function linkify(text) {
+  if(!text) return '';
+  // 先 escHtml，再替换 URL 为链接
+  const escaped = escHtml(text);
+  return escaped.replace(/(https?:\/\/[^\s<>"]+)/g, (url) => {
+    // 判断是否学城链接
+    const isKM = url.includes('km.sankuai.com') || url.includes('sankuai.com');
+    const label = isKM ? '📄 ' + url.replace(/^https?:\/\//,'').split('/')[0] + '…' : url.length > 40 ? url.slice(0,40)+'…' : url;
+    return `<a href="${url}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-size:inherit" onmouseenter="this.style.textDecoration='underline'" onmouseleave="this.style.textDecoration='none'" onclick="event.stopPropagation()">${label}</a>`;
+  });
+}
 function buildDTValue(date, h, m) {
   if (!date) return '';
   if (!h) return date;
@@ -873,7 +906,7 @@ function addTask() {
 }
 
 function toggleTask(id) {
-  const t = tasks.find(t => t.id === id);
+  const t = tasks.find(t => t.id == id);
   if (!t) return;
   t.done = !t.done;
   // 如果是循环任务，完成后生成下一次
@@ -927,10 +960,11 @@ function calcNextRepeat(dt, repeat) {
   return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
 }
 
-function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
+function deleteTask(id) { tasks = tasks.filter(t => t.id != id); save(); render(); }
 
+function showEditModal(id) { openEditModal(typeof id === 'string' ? (isNaN(id) ? id : Number(id)) : id); }
 function openEditModal(id) {
-  const t = tasks.find(t => t.id === id); if (!t) return;
+  const t = tasks.find(t => t.id == id); if (!t) return;
   editingTaskId = id;
   document.getElementById('edit-title').value = t.title;
   document.getElementById('edit-body').value = t.body || '';
@@ -1008,7 +1042,7 @@ function render() { renderSidebar(); renderTasks(); updateHeader(); }
 
 function updateHeader() {
   const listObj = lists.find(l => `list:${l.id}` === curView);
-  const titles = { today:'今天', all:'全部任务', done:'已完成' };
+  const titles = { today:'今天', all:'全部任务', done:'已完成', week:'本周一览' };
   document.getElementById('view-title').textContent = listObj
     ? listObj.name
     : (titles[curView] || curView);
@@ -1037,6 +1071,18 @@ function renderSidebar() {
     el.classList.toggle('visible', n > 0);
   };
   setCnt('cnt-today', tc); setCnt('cnt-all', ac); setCnt('cnt-done', dc); setCnt('cnt-notes', nc);
+  // 本周计数
+  const nowW = new Date();
+  const dowW = nowW.getDay();
+  const mondayW = new Date(nowW);
+  mondayW.setDate(nowW.getDate() - (dowW===0?6:dowW-1));
+  mondayW.setHours(0,0,0,0);
+  const sundayW = new Date(mondayW);
+  sundayW.setDate(mondayW.getDate() + 6);
+  sundayW.setHours(23,59,59,999);
+  const wkCnt = tasks.filter(t=>!t.done && t.dt && new Date(t.dt)>=mondayW && new Date(t.dt)<=sundayW).length;
+  const wkEl = document.getElementById('cnt-week');
+  if(wkEl) wkEl.textContent = wkCnt||'';
   document.getElementById('sb-lists').innerHTML = lists.map(l => {
     const cnt = tasks.filter(t => t.listId === l.id && !t.done).length;
     const isAct = curView === `list:${l.id}`;
@@ -1047,6 +1093,64 @@ function renderSidebar() {
       <button class="li-edit-btn" onclick="event.stopPropagation();showListModal('${l.id}')" title="编辑清单">✏️</button>
     </div>`;
   }).join('');
+}
+
+function formatViewDate() {
+  const d = new Date();
+  const days = ['周日','周一','周二','周三','周四','周五','周六'];
+  return `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日 · ${days[d.getDay()]}`;
+}
+
+function renderWeekView() {
+  const main = document.getElementById('task-list');
+  // 计算本周一到周日
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=日
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  monday.setHours(0,0,0,0);
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+  const todayStr2 = todayStr();
+  const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+  // 统计本周任务数
+  let weekCount = 0;
+  days.forEach(d => {
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    tasks.filter(t => !t.done && t.dt && t.dt.startsWith(ds)).forEach(() => weekCount++);
+  });
+  const wkEl = document.getElementById('cnt-week');
+  if(wkEl) wkEl.textContent = weekCount || '';
+
+  let html = `<div class="week-grid">`;
+  days.forEach((d, i) => {
+    const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+    const isToday = ds === todayStr2;
+    const isPast = d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds)).sort((a,b) => {
+      const pOrd = {high:0,mid:1,low:2,none:3};
+      return (pOrd[a.priority]||3) - (pOrd[b.priority]||3);
+    });
+    html += `<div class="week-col">`;
+    html += `<div class="week-col-hd ${isToday?'today':isPast?'past':''}">${dayNames[i]}<br><span style="font-size:10px;font-weight:400;opacity:.8">${p2(d.getMonth()+1)}/${p2(d.getDate())}</span></div>`;
+    if(dayTasks.length === 0) {
+      html += `<div class="week-no-task">空</div>`;
+    } else {
+      dayTasks.forEach(t => {
+        const timeStr = t.dt && t.dt.includes('T') ? t.dt.split('T')[1].slice(0,5) : '';
+        html += `<div class="week-task ${t.done?'done':''} ${t.priority||''}" onclick="showEditModal('${t.id}')">
+          ${escHtml(t.title)}
+          ${timeStr ? `<div class="week-task-time">${timeStr}</div>` : ''}
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  });
+  html += `</div>`;
+  main.innerHTML = html;
 }
 
 function renderTasks() {
@@ -1072,13 +1176,17 @@ function renderTasks() {
     return `<div class="task-item ${t.done?'done-item':''}" id="task-${t.id}">
       <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
       <div class="t-body">
-        <div class="t-title">${escHtml(t.title)}</div>
-        ${t.body ? `<div class="t-body-preview">${escHtml(t.body)}</div>` : ''}
+        <div class="t-title">${linkify(t.title)}</div>
+        ${t.body ? `<div class="t-body-preview">${linkify(t.body)}</div>` : ''}
         <div class="t-meta">${pTag}${dTag}${rTag}${lTag}</div>
       </div>
       <div class="t-actions">
-        <button class="t-btn" onclick="openEditModal(${t.id})" title="编辑">✏️</button>
-        <button class="t-btn del" onclick="deleteTask(${t.id})" title="删除">✕</button>
+        <button class="t-act-btn" onclick="showEditModal('${t.id}')" title="编辑">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="t-act-btn t-act-del" onclick="deleteTask('${t.id}')" title="删除">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -1100,7 +1208,17 @@ function switchView(view, el) {
   if (view === 'notes') {
     tv.style.display = 'none'; nv.style.display = 'flex'; nev.style.display = 'none';
     renderNotes();
+  } else if (view === 'week') {
+    tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none';
+    renderSidebar();
+    updateHeader();
+    // hide filter bar and show week grid
+    document.getElementById('filter-bar').style.display = 'none';
+    document.querySelector('.divider').style.display = 'none';
+    renderWeekView();
   } else {
+    document.getElementById('filter-bar').style.display = '';
+    document.querySelector('.divider').style.display = '';
     tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none';
     render();
   }
