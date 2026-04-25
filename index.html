@@ -67,7 +67,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .hbp-clear:hover{color:#e03e2d;border-color:#e03e2d}
 .header h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .header .meta{font-size:13px;color:var(--t3);margin-top:3px}
-.header .motto{font-size:13px;margin-top:5px;font-style:italic;line-height:1.5;background:linear-gradient(90deg,#f97316,#ec4899,#8b5cf6,#3b82f6,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block}
+.header .motto{font-size:15px;font-weight:600;margin-top:6px;font-style:italic;line-height:1.5;background:linear-gradient(90deg,#e53e3e,#dd6b20,#d69e2e,#38a169,#3182ce,#805ad5,#d53f8c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block}
 /* ── ADD BAR ── */
 .add-wrap{padding:16px 44px 0;flex-shrink:0}
 .add-wrap.hidden{display:none}
@@ -1408,11 +1408,23 @@ function onDropLink(e, targetId) {
   el.focus();
 }
 
+// ── 金句渲染（文字渐变，emoji 原色） ──
+function setMottoHTML(el, text) {
+  if (!el) return;
+  // 把 emoji 单独用 span 包起来，不受渐变 clip 影响
+  const emojiReg = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  const html = text.replace(emojiReg, m =>
+    `<span style="-webkit-text-fill-color:initial;background:none;filter:none">${m}</span>`
+  );
+  el.innerHTML = html;
+}
+
 // ── 每日金句自定义 ──
 function editMotto() {
   const el = document.getElementById('motto');
   if (!el) return;
-  const cur = el.textContent;
+  const cur = el.innerText; // 纯文字（含emoji）
+  el.textContent = cur;     // 先把innerHTML换成纯文字，方便编辑
   el.setAttribute('contenteditable', 'true');
   el.focus();
   // 全选
@@ -1425,15 +1437,16 @@ function editMotto() {
     el.removeAttribute('contenteditable');
     el.removeEventListener('blur', done);
     el.removeEventListener('keydown', onKey);
-    const val = el.textContent.trim();
+    const val = el.innerText.trim();
     if (val) {
       localStorage.setItem('td_motto_custom', val);
+      setMottoHTML(el, val);
     }
   }
   function onKey(e) {
     if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
     if (e.key === 'Escape') {
-      el.textContent = cur;
+      setMottoHTML(el, cur);
       el.removeAttribute('contenteditable');
       el.removeEventListener('blur', done);
       el.removeEventListener('keydown', onKey);
@@ -1448,7 +1461,7 @@ function resetMotto(e) {
   localStorage.removeItem('td_motto_custom');
   const d = new Date();
   const el = document.getElementById('motto');
-  if (el) el.textContent = MOTTOS[d.getDate() % MOTTOS.length];
+  if (el) setMottoHTML(el, MOTTOS[d.getDate() % MOTTOS.length]);
 }
 
 // ── 便签 ──
@@ -2350,7 +2363,7 @@ function updateHeader() {
   const mottoEl = document.getElementById('motto');
   if (mottoEl) {
     const custom = localStorage.getItem('td_motto_custom');
-    mottoEl.textContent = custom !== null ? custom : MOTTOS[d.getDate() % MOTTOS.length];
+    setMottoHTML(mottoEl, custom !== null ? custom : MOTTOS[d.getDate() % MOTTOS.length]);
   }
   // 同步清单选择器显示
   const cur = lists.find(l => l.id === addListId) || lists[0];
