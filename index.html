@@ -619,11 +619,36 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       </div>
     </div>
     <label>日期时间</label>
-    <div style="display:flex;align-items:center;gap:0">
-      <input type="datetime-local" id="edit-dt" step="300" style="flex:1" oninput="syncEndTime(this)"/>
-      <span style="margin:0 8px;color:var(--t3);font-size:12px;white-space:nowrap">至</span>
-      <input type="datetime-local" id="edit-dt-end" step="300" style="flex:1"/>
+    <!-- 开始时间 -->
+    <div style="display:flex;gap:8px;align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:4px">开始</div>
+        <input type="date" id="edit-dt-date" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;color:var(--text);box-sizing:border-box" onchange="editSyncEndDate()"/>
+        <div style="display:flex;margin-top:6px">
+          <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
+        </div>
+        <div class="time-scroller" style="height:120px">
+          <div class="time-col" id="edit-hour-col"></div>
+          <div class="time-col" id="edit-min-col"></div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:4px">结束</div>
+        <input type="date" id="edit-dt-end-date" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;color:var(--text);box-sizing:border-box"/>
+        <div style="display:flex;margin-top:6px">
+          <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
+          <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
+        </div>
+        <div class="time-scroller" style="height:120px">
+          <div class="time-col" id="edit-ehour-col"></div>
+          <div class="time-col" id="edit-emin-col"></div>
+        </div>
+      </div>
     </div>
+    <!-- 隐藏字段供 saveEdit 读取 -->
+    <input type="hidden" id="edit-dt"/>
+    <input type="hidden" id="edit-dt-end"/>
     <div class="modal-actions" style="margin-top:6px">
       <button class="btn-cancel" onclick="hideEditModal()">取消</button>
       <button class="btn-confirm" onclick="saveEdit()">保存</button>
@@ -880,15 +905,86 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
-// 开始时间变化时自动同步结束时间为开始+30分钟
-function syncEndTime(startEl) {
-  const endEl = document.getElementById('edit-dt-end');
-  if (!startEl.value) return;
-  const d = new Date(startEl.value);
-  d.setMinutes(d.getMinutes() + 30);
-  const pad = n => String(n).padStart(2,'0');
-  endEl.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+// ── 编辑弹窗时间滚轮 ──
+const EDIT_MINS = ['00','05','10','15','20','25','30','35','40','45','50','55'];
+
+function buildEditTimeGrid(startH, startM, endH, endM) {
+  const build = (hColId, mColId, selH, selM) => {
+    const hCol = document.getElementById(hColId);
+    const mCol = document.getElementById(mColId);
+    hCol.innerHTML = Array.from({length:24},(_,i)=>p2(i)).map(h=>
+      `<div class="time-slot ${h===selH?'selected':''}" onclick="editSelectTime('${hColId}','${mColId}','${h}',null,this)">${h}</div>`
+    ).join('');
+    mCol.innerHTML = EDIT_MINS.map(m=>
+      `<div class="time-slot ${m===selM?'selected':''}" onclick="editSelectTime('${hColId}','${mColId}',null,'${m}',this)">${m}</div>`
+    ).join('');
+    setTimeout(()=>{
+      const hs=hCol.querySelector('.selected'), ms=mCol.querySelector('.selected');
+      if(hs) hCol.scrollTop=hs.offsetTop-40;
+      if(ms) mCol.scrollTop=ms.offsetTop-40;
+    },50);
+  };
+  build('edit-hour-col','edit-min-col', startH, startM);
+  build('edit-ehour-col','edit-emin-col', endH, endM);
 }
+
+function editSelectTime(hColId, mColId, h, m, el) {
+  if(h!==null) {
+    document.querySelectorAll(`#${hColId} .time-slot`).forEach(e=>e.classList.remove('selected'));
+  } else {
+    document.querySelectorAll(`#${mColId} .time-slot`).forEach(e=>e.classList.remove('selected'));
+  }
+  el.classList.add('selected');
+  // 同步隐藏字段
+  syncEditDTHidden();
+  // 如果改的是开始时间，自动更新结束时间=+30min
+  if (hColId==='edit-hour-col' || mColId==='edit-min-col') {
+    autoFillEditEndTime();
+  }
+}
+
+function editSyncEndDate() {
+  // 开始日期改变时，结束日期跟随（如果结束日期为空或等于旧的开始日期）
+  const sd = document.getElementById('edit-dt-date').value;
+  const ed = document.getElementById('edit-dt-end-date');
+  if (!ed.value || ed.value < sd) ed.value = sd;
+  syncEditDTHidden();
+}
+
+function autoFillEditEndTime() {
+  const sd = document.getElementById('edit-dt-date').value;
+  const sh = document.querySelector('#edit-hour-col .selected')?.textContent || '';
+  const sm = document.querySelector('#edit-min-col .selected')?.textContent || '';
+  if (!sd || !sh || !sm) return;
+  const d = new Date(`${sd}T${sh}:${sm}`);
+  d.setMinutes(d.getMinutes()+30);
+  const edate = p2(d.getFullYear())+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+  const eh = p2(d.getHours()), em = p2(d.getMinutes());
+  // 找最近的5分档
+  const emRound = EDIT_MINS.reduce((a,b)=>Math.abs(parseInt(b)-d.getMinutes())<Math.abs(parseInt(a)-d.getMinutes())?b:a);
+  document.getElementById('edit-dt-end-date').value = edate;
+  document.querySelectorAll('#edit-ehour-col .time-slot').forEach(e=>{
+    e.classList.toggle('selected', e.textContent===eh);
+  });
+  document.querySelectorAll('#edit-emin-col .time-slot').forEach(e=>{
+    e.classList.toggle('selected', e.textContent===emRound);
+  });
+  syncEditDTHidden();
+}
+
+function syncEditDTHidden() {
+  const sd = document.getElementById('edit-dt-date').value;
+  const sh = document.querySelector('#edit-hour-col .selected')?.textContent || '';
+  const sm = document.querySelector('#edit-min-col .selected')?.textContent || '';
+  const ed = document.getElementById('edit-dt-end-date').value;
+  const eh = document.querySelector('#edit-ehour-col .selected')?.textContent || '';
+  const em = document.querySelector('#edit-emin-col .selected')?.textContent || '';
+  document.getElementById('edit-dt').value = (sd && sh && sm) ? `${sd}T${sh}:${sm}` : '';
+  document.getElementById('edit-dt-end').value = (ed && eh && em) ? `${ed}T${eh}:${em}` : '';
+}
+
+// 旧的 syncEndTime（保留备用，已不被 HTML 调用）
+function syncEndTime() {}
 
 function editAppName() {
   const span = document.getElementById('app-name');
@@ -1273,17 +1369,28 @@ function openEditModal(id) {
   } else {
     document.getElementById('edit-repeat').value = t.repeat || 'none';
   }
-  document.getElementById('edit-dt').value = t.dt || '';
-  // 结束时间：已有 dtEnd 用 dtEnd，否则开始时间+30分钟
-  if (t.dtEnd) {
-    document.getElementById('edit-dt-end').value = t.dtEnd;
-  } else if (t.dt) {
-    const d = new Date(t.dt); d.setMinutes(d.getMinutes()+30);
-    const pad = n => String(n).padStart(2,'0');
-    document.getElementById('edit-dt-end').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  } else {
-    document.getElementById('edit-dt-end').value = '';
+  // 解析开始时间
+  let sDate='', sH='', sM='';
+  if (t.dt) {
+    const d = new Date(t.dt);
+    sDate = t.dt.slice(0,10);
+    sH = p2(d.getHours());
+    sM = EDIT_MINS.reduce((a,b)=>Math.abs(parseInt(b)-d.getMinutes())<Math.abs(parseInt(a)-d.getMinutes())?b:a);
   }
+  // 解析结束时间（没有则+30min）
+  let eDate='', eH='', eM='';
+  const dtEnd = t.dtEnd || (t.dt ? (()=>{const d=new Date(t.dt);d.setMinutes(d.getMinutes()+30);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;})() : '');
+  if (dtEnd) {
+    const d = new Date(dtEnd);
+    eDate = dtEnd.slice(0,10);
+    eH = p2(d.getHours());
+    eM = EDIT_MINS.reduce((a,b)=>Math.abs(parseInt(b)-d.getMinutes())<Math.abs(parseInt(a)-d.getMinutes())?b:a);
+  }
+  document.getElementById('edit-dt-date').value = sDate;
+  document.getElementById('edit-dt-end-date').value = eDate;
+  buildEditTimeGrid(sH, sM, eH, eM);
+  document.getElementById('edit-dt').value = t.dt || '';
+  document.getElementById('edit-dt-end').value = dtEnd || '';
   // 填充清单选项
   const sel = document.getElementById('edit-list');
   sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${escHtml(l.name)}</option>`).join('');
@@ -1383,6 +1490,7 @@ function loadEditCustomRepeat(repeatVal) {
 }
 
 function saveEdit() {
+  syncEditDTHidden(); // 确保隐藏字段是最新值
   const t = tasks.find(t => t.id === editingTaskId); if (!t) return;
   const title = document.getElementById('edit-title').value.trim();
   if (title) t.title = title;
