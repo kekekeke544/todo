@@ -449,7 +449,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <div class="add-wrap">
       <div class="add-bar">
         <div class="add-plus">+</div>
-        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务… (可拖入链接)" onkeydown="if(event.key==='Enter')addTask()" ondragover="event.preventDefault()" ondrop="onDropLink(event,'task-input')"/>
+        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务… (可拖入链接)" onkeydown="if(event.key==='Enter')addTask()" ondragover="event.preventDefault()" ondrop="onDropLink(event,'task-input')" onpaste="onPasteAutoLink(event,'task-input')"/>
         <div class="add-sep"></div>
         <!-- 优先级 -->
         <div class="prio-wrapper" id="prio-wrapper">
@@ -660,7 +660,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <label>所属清单</label>
     <select id="edit-list" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);cursor:pointer;outline:none"></select>
     <label>内容备注</label>
-    <textarea id="edit-body" placeholder="详细描述、备注… (可拖入链接)" ondragover="event.preventDefault()" ondrop="onDropLink(event,'edit-body')"></textarea>
+    <textarea id="edit-body" placeholder="详细描述、备注… (可拖入链接)" ondragover="event.preventDefault()" ondrop="onDropLink(event,'edit-body')" onpaste="onPasteAutoLink(event,'edit-body')"></textarea>
     <div class="edit-row">
       <div>
         <label>优先级</label>
@@ -1045,6 +1045,43 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
+// ── 粘贴 URL 自动抓取标题 ──
+async function fetchUrlTitle(url) {
+  try {
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl, {signal: AbortSignal.timeout(5000)});
+    const data = await res.json();
+    const html = data.contents || '';
+    const m = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+    return m ? m[1].trim().replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'") : null;
+  } catch(e) { return null; }
+}
+
+async function onPasteAutoLink(e, targetId) {
+  const text = e.clipboardData.getData('text/plain').trim();
+  if (!text.startsWith('http')) return;
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  // 给个视觉提示
+  const prevPlaceholder = el.placeholder;
+  if (el.placeholder !== undefined) el.placeholder = '正在获取链接标题…';
+  const title = await fetchUrlTitle(text);
+  if (el.placeholder !== undefined) el.placeholder = prevPlaceholder;
+  if (title && title !== text) {
+    // 插入格式：[标题](url) 样式的纯文本，方便 linkify 渲染
+    e.preventDefault();
+    const insert = `${title} ${text}`;
+    if (el.tagName === 'TEXTAREA') {
+      const pos = el.selectionStart;
+      el.value = el.value.slice(0, pos) + insert + el.value.slice(el.selectionEnd);
+      el.selectionStart = el.selectionEnd = pos + insert.length;
+    } else {
+      el.value = (el.value ? el.value + ' ' : '') + insert;
+    }
+  }
+  // 如果没有抓到标题，让默认粘贴行为正常发生
+}
+
 // ── 拖拽链接到输入框 ──
 function onDropLink(e, targetId) {
   e.preventDefault();
@@ -1614,10 +1651,27 @@ function calcNextRepeat(dt, repeat) {
     if(unit==='day') { d.setDate(d.getDate()+num); }
     else if(unit==='week') {
       const wdsPart = (parts[3] && parts[3]!=='end') ? parts[3] : null;
-      const wds = wdsPart ? wdsPart.split(',').map(Number) : [1];
-      d.setDate(d.getDate()+1);
-      let count=0;
-      while(!wds.includes(d.getDay()) && count<14){ d.setDate(d.getDate()+1); count++; }
+      const wds = wdsPart ? wdsPart.split(',').map(Number).sort((a,b)=>a-b) : [1];
+      // 找到当前日期在 wds 中的位置，确定下一个目标
+      const curWd = d.getDay(); // 0=日
+      // 先找当前周内（wds 中大于 curWd 的最小值）
+      const nextInWeek = wds.find(w => w > curWd);
+      if (nextInWeek !== undefined) {
+        // 当前周内有下一个匹配星期 → 只跳到那天
+        d.setDate(d.getDate() + (nextInWeek - curWd));
+      } else {
+        // 当前周内没有 → 跳 N 周后，从周一开始找 wds 中最小的星期
+        // 先跳到下 N 周的周一
+        const daysToNextMonday = (8 - curWd) % 7 || 7; // 到下周一的天数
+        d.setDate(d.getDate() + daysToNextMonday + (num - 1) * 7);
+        // 再在那一周内找 wds 的第一个匹配
+        const weekDay0 = d.getDay(); // 跳到了下N周的周一（=1）
+        const targetWd = wds[0]; // 最小星期
+        // 计算到 targetWd 的偏移（周一=1, targetWd 相对周一的偏移）
+        let offset = targetWd - d.getDay();
+        if (offset < 0) offset += 7;
+        d.setDate(d.getDate() + offset);
+      }
     }
     else if(unit==='month') { d.setMonth(d.getMonth()+num); }
     const hasTime = dt.includes('T');
