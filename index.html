@@ -184,15 +184,13 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .tag-list{font-size:11.5px;color:var(--t3)}
 .tag-repeat{font-size:11px;color:#8b5cf6;background:#f5f3ff;padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:2px}
 
-.t-actions{display:flex;gap:2px;opacity:0;transition:opacity .12s;flex-shrink:0;margin-top:1px}
-.task-item:hover .t-actions{opacity:1}
+.t-actions{display:flex;gap:2px;flex-shrink:0;margin-top:1px}
 .t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
 .t-btn:hover{color:var(--text);background:var(--sb-active)}
 .t-btn.del:hover{color:var(--high);background:var(--high-bg)}
-.t-act-btn{background:none;border:none;cursor:pointer;color:var(--t3);padding:3px 5px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s;opacity:0}
+.t-act-btn{background:none;border:none;cursor:pointer;color:var(--t3);padding:4px 6px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .t-act-btn:hover{background:var(--sb-hover);color:var(--text)}
 .t-act-btn.t-act-del:hover{color:#e03e2d}
-.task-item:hover .t-act-btn{opacity:1}
 
 /* ── EMPTY ── */
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:var(--t3);gap:8px}
@@ -589,7 +587,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <div>
         <label>日期时间</label>
         <div style="display:flex;align-items:center">
-        <input type="datetime-local" id="edit-dt" step="300" style="flex:1"/>
+        <input type="datetime-local" id="edit-dt" step="300" style="flex:1" oninput="syncEndTime(this)"/>
         <span style="margin:0 6px;color:var(--t3);font-size:12px">至</span>
         <input type="datetime-local" id="edit-dt-end" step="300" style="flex:1"/>
         </div>
@@ -855,6 +853,12 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
+// 开始时间变化时自动同步结束时间（仅当结束时间为空时）
+function syncEndTime(startEl) {
+  const endEl = document.getElementById('edit-dt-end');
+  if (!endEl.value) endEl.value = startEl.value;
+}
+
 function editAppName() {
   const span = document.getElementById('app-name');
   const inp  = document.getElementById('app-name-input');
@@ -1230,7 +1234,7 @@ function openEditModal(id) {
   document.getElementById('edit-prio').value = t.priority || 'none';
   document.getElementById('edit-repeat').value = t.repeat || 'none';
   document.getElementById('edit-dt').value = t.dt || '';
-  document.getElementById('edit-dt-end').value = t.dtEnd || '';
+  document.getElementById('edit-dt-end').value = t.dtEnd || t.dt || '';
   // 填充清单选项
   const sel = document.getElementById('edit-list');
   sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${escHtml(l.name)}</option>`).join('');
