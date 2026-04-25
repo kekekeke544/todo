@@ -68,6 +68,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .header h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .header .meta{font-size:13px;color:var(--t3);margin-top:3px}
 .header .motto{font-size:13px;color:var(--t2);margin-top:5px;font-style:italic;opacity:.8;line-height:1.5}
+#header-note:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
+#header-note a{color:var(--accent);text-decoration:underline;cursor:pointer}
+#header-note b,#header-note strong{font-weight:700}
 
 /* ── ADD BAR ── */
 .add-wrap{padding:16px 44px 0;flex-shrink:0}
@@ -455,6 +458,11 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <h1 id="view-title">今天</h1>
       <div class="meta" id="view-meta"></div>
       <div class="motto" id="motto" title="双击自定义，右键恢复每日自动" ondblclick="editMotto()" oncontextmenu="resetMotto(event)" style="cursor:text"></div>
+      <div id="header-note" contenteditable="true" spellcheck="false"
+        data-placeholder="在这里写备忘、放链接…"
+        oninput="saveHeaderNote()"
+        oncontextmenu="onHeaderNoteCtx(event)"
+        style="font-size:13px;color:var(--t2);margin-top:6px;line-height:1.6;outline:none;min-height:18px;word-break:break-word;white-space:pre-wrap;max-width:680px"></div>
       <button class="header-bg-btn" onclick="toggleHeaderBgPanel(event)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         换背景
@@ -1125,6 +1133,28 @@ function onDropLink(e, targetId) {
   el.focus();
 }
 
+// ── 头部备忘框 ──
+function saveHeaderNote() {
+  const el = document.getElementById('header-note');
+  if (el) localStorage.setItem('td_header_note', el.innerHTML);
+}
+function loadHeaderNote() {
+  const el = document.getElementById('header-note');
+  if (el) el.innerHTML = localStorage.getItem('td_header_note') || '';
+}
+let _hnSavedRange = null;
+function onHeaderNoteCtx(e) {
+  e.preventDefault();
+  const sel = window.getSelection();
+  _hnSavedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+  const menu = document.getElementById('sp-ctx-menu');
+  // 复用便签右键菜单，但指向 header-note
+  _ctxTarget = 'header';
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 160) + 'px';
+  menu.classList.add('show');
+}
+
 // ── 每日金句自定义 ──
 function editMotto() {
   const el = document.getElementById('motto');
@@ -1178,11 +1208,12 @@ function loadStickyPad() {
   if (el) el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
 }
 
-// 右键菜单
+// 右键菜单（便签 + 头部备忘 共用）
 let _spSavedRange = null;
+let _ctxTarget = 'sticky'; // 'sticky' | 'header'
 function onStickyPadCtx(e) {
   e.preventDefault();
-  // 保存当前选区
+  _ctxTarget = 'sticky';
   const sel = window.getSelection();
   _spSavedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
   const menu = document.getElementById('sp-ctx-menu');
@@ -1200,11 +1231,14 @@ function spCtxRestoreRange() {
     sel.addRange(_spSavedRange);
   }
 }
+function spCtxSave() {
+  if (_ctxTarget === 'header') saveHeaderNote();
+  else saveStickyPad();
+}
 function spCtxBold() {
   spCtxRestoreRange();
   document.execCommand('bold', false, null);
-  saveStickyPad();
-  spCtxClose();
+  spCtxSave(); spCtxClose();
 }
 function spCtxLink() {
   spCtxClose();
@@ -1212,27 +1246,23 @@ function spCtxLink() {
   if (!url || !url.startsWith('http')) return;
   spCtxRestoreRange();
   document.execCommand('createLink', false, url);
-  // 让链接在新标签打开
-  document.querySelectorAll('#sb-sticky-pad a').forEach(a => {
+  const padId = _ctxTarget === 'header' ? 'header-note' : 'sb-sticky-pad';
+  document.querySelectorAll(`#${padId} a`).forEach(a => {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener');
-    a.onclick = e => e.stopPropagation();
   });
-  saveStickyPad();
+  spCtxSave();
 }
 function spCtxRemoveLink() {
   spCtxRestoreRange();
   document.execCommand('unlink', false, null);
-  saveStickyPad();
-  spCtxClose();
+  spCtxSave(); spCtxClose();
 }
 function spCtxClear() {
   spCtxRestoreRange();
   document.execCommand('removeFormat', false, null);
-  saveStickyPad();
-  spCtxClose();
+  spCtxSave(); spCtxClose();
 }
-// 点击别处关闭右键菜单
 document.addEventListener('click', e => {
   const menu = document.getElementById('sp-ctx-menu');
   if (menu && !menu.contains(e.target)) spCtxClose();
@@ -2617,6 +2647,7 @@ if (!localStorage.getItem('td_goalsv2')) {
 
 render();
 loadStickyPad();
+loadHeaderNote();
 initHeaderBg();
 
 // 点击空白关闭 header bg panel
