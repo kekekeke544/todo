@@ -38,9 +38,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sb-list-item{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;cursor:pointer;font-size:13.5px;color:var(--t2);transition:background .1s;user-select:none;border-radius:6px;margin:1px 6px}
 .sb-list-item:hover{background:var(--sb-hover);color:var(--text)}
 .sb-list-item.active{background:var(--sb-active);color:var(--text);font-weight:500}
+.sb-list-item.list-drag-over{border-top:2px solid var(--accent)}
 .sb-list-item .li-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .sb-list-item .li-cnt{margin-left:auto;font-size:11px;color:var(--t3);flex-shrink:0}
-.sb-list-item .li-edit-btn{opacity:0;background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;transition:opacity .1s;flex-shrink:0}
+.sb-list-item .li-edit-btn{opacity:0;background:none;border:none;font-size:0;color:var(--t3);cursor:pointer;padding:2px 4px;border-radius:4px;line-height:1;transition:opacity .1s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .sb-list-item:hover .li-edit-btn{opacity:1}
 .sb-list-item .li-edit-btn:hover{color:var(--text);background:var(--sb-active)}
 
@@ -587,7 +588,11 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <div class="edit-row">
       <div>
         <label>日期时间</label>
-        <input type="datetime-local" id="edit-dt" step="300"/>
+        <div style="display:flex;align-items:center">
+        <input type="datetime-local" id="edit-dt" step="300" style="flex:1"/>
+        <span style="margin:0 6px;color:var(--t3);font-size:12px">至</span>
+        <input type="datetime-local" id="edit-dt-end" step="300" style="flex:1"/>
+        </div>
       </div>
       <div>
         <label>所属清单</label>
@@ -1225,6 +1230,7 @@ function openEditModal(id) {
   document.getElementById('edit-prio').value = t.priority || 'none';
   document.getElementById('edit-repeat').value = t.repeat || 'none';
   document.getElementById('edit-dt').value = t.dt || '';
+  document.getElementById('edit-dt-end').value = t.dtEnd || '';
   // 填充清单选项
   const sel = document.getElementById('edit-list');
   sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${escHtml(l.name)}</option>`).join('');
@@ -1243,6 +1249,7 @@ function saveEdit() {
   t.priority = document.getElementById('edit-prio').value;
   t.repeat   = document.getElementById('edit-repeat').value;
   t.dt       = document.getElementById('edit-dt').value;
+  t.dtEnd    = document.getElementById('edit-dt-end').value || '';
   t.listId   = document.getElementById('edit-list').value;
   save(); hideEditModal(); render();
 }
@@ -1252,7 +1259,7 @@ function saveEdit() {
 // ══════════════════════════════════════
 function getVisible() {
   let r = [...tasks];
-  if (curView === 'today')       r = r.filter(t => !t.done && (isToday(t.dt) || isOverdue(t.dt) || !t.dt));
+  if (curView === 'today')       r = r.filter(t => isToday(t.dt) || isOverdue(t.dt) || !t.dt);
   else if (curView === 'done')   r = r.filter(t => t.done);
   else if (curView === 'all')    {}
   else if (curView.startsWith('list:')) r = r.filter(t => t.listId === curView.slice(5));
@@ -1262,13 +1269,14 @@ function getVisible() {
   else if (curFilter === 'overdue') r = r.filter(t => isOverdue(t.dt) && !t.done);
   else if (curFilter === 'done')    r = r.filter(t => t.done);
 
-  const pO = { high:0, mid:1, low:2, none:3 };
   r.sort((a,b) => {
-    const pa = pO[a.priority]??3, pb = pO[b.priority]??3;
-    if (pa !== pb) return pa - pb;
+    // 有时间的排前面，按时间升序
     if (a.dt && b.dt) return new Date(a.dt) - new Date(b.dt);
     if (a.dt) return -1; if (b.dt) return 1;
-    return b.id - a.id;
+    // 都没时间，按优先级
+    const pO = { high:0, mid:1, low:2, none:3 };
+    const pa = pO[a.priority]??3, pb = pO[b.priority]??3;
+    return pa - pb;
   });
   return r;
 }
@@ -1340,13 +1348,50 @@ function renderSidebar() {
   document.getElementById('sb-lists').innerHTML = lists.map(l => {
     const cnt = tasks.filter(t => t.listId === l.id && !t.done).length;
     const isAct = curView === `list:${l.id}`;
-    return `<div class="sb-list-item ${isAct?'active':''}" onclick="switchViewList('${l.id}',this)">
+    return `<div class="sb-list-item ${isAct?'active':''}" draggable="true" data-lid="${l.id}" onclick="switchViewList('${l.id}',this)">
       <span class="li-icon" style="display:flex;align-items:center;justify-content:center">${listDot(l)}</span>
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.name)}</span>
       ${cnt ? `<span class="li-cnt">${cnt}</span>` : ''}
-      <button class="li-edit-btn" onclick="event.stopPropagation();showListModal('${l.id}')" title="编辑清单">✏️</button>
+      <button class="li-edit-btn" onclick="event.stopPropagation();showListModal('${l.id}')" title="编辑清单"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
     </div>`;
   }).join('');
+  // 清单拖拽排序
+  setTimeout(() => {
+    const sbLists = document.getElementById('sb-lists');
+    if (!sbLists) return;
+    let dragLid = null;
+    sbLists.addEventListener('dragstart', e => {
+      const item = e.target.closest('.sb-list-item');
+      if (!item) return;
+      dragLid = item.dataset.lid;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => item.style.opacity = '0.4', 0);
+    });
+    sbLists.addEventListener('dragend', e => {
+      const item = e.target.closest('.sb-list-item');
+      if (item) item.style.opacity = '';
+      sbLists.querySelectorAll('.sb-list-item').forEach(el => el.classList.remove('list-drag-over'));
+    });
+    sbLists.addEventListener('dragover', e => {
+      e.preventDefault();
+      const item = e.target.closest('.sb-list-item');
+      sbLists.querySelectorAll('.sb-list-item').forEach(el => el.classList.remove('list-drag-over'));
+      if (item && item.dataset.lid !== dragLid) item.classList.add('list-drag-over');
+      e.dataTransfer.dropEffect = 'move';
+    });
+    sbLists.addEventListener('drop', e => {
+      e.preventDefault();
+      const item = e.target.closest('.sb-list-item');
+      if (!item || item.dataset.lid === dragLid) return;
+      const srcIdx = lists.findIndex(l => l.id === dragLid);
+      const dstIdx = lists.findIndex(l => l.id === item.dataset.lid);
+      if (srcIdx < 0 || dstIdx < 0) return;
+      const [moved] = lists.splice(srcIdx, 1);
+      lists.splice(dstIdx, 0, moved);
+      save();
+      renderSidebar();
+    });
+  }, 0);
 }
 
 function formatViewDate() {
@@ -1421,8 +1466,10 @@ function renderTasks() {
     const cfg = PRIO_CFG[t.priority] || PRIO_CFG.none;
     const pTag = (t.priority && t.priority !== 'none')
       ? `<span class="tag ${cfg.cls}"><div class="td" style="background:${cfg.color}"></div>${cfg.label}</span>` : '';
-    const dTag = dtStr
-      ? `<span class="tag-date ${ov?'overdue':''}">📅 ${escHtml(dtStr)}${ov?' · 逾期':''}</span>` : '';
+    const dtEndStr = t.dtEnd ? fmtDT(t.dtEnd) : '';
+    const dtRangeStr = dtStr && dtEndStr ? `${dtStr} → ${dtEndStr.includes(dtStr.slice(0,10)) ? dtEndStr.slice(-5) : dtEndStr}` : dtStr;
+    const dTag = dtRangeStr
+      ? `<span class="tag-date ${ov?'overdue':''}">📅 ${escHtml(dtRangeStr)}${ov?' · 逾期':''}</span>` : '';
     const lObj = listMap[t.listId];
     const lTag = lObj ? `<span class="tag-list">${listDot(lObj)} ${escHtml(lObj.name)}</span>` : '';
     const rLabel = getRepeatLabel(t.repeat);
