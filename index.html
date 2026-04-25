@@ -454,7 +454,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <div class="header" id="main-header">
       <h1 id="view-title">今天</h1>
       <div class="meta" id="view-meta"></div>
-      <div class="motto" id="motto"></div>
+      <div class="motto" id="motto" title="双击自定义，右键恢复每日自动" ondblclick="editMotto()" oncontextmenu="resetMotto(event)" style="cursor:text"></div>
       <button class="header-bg-btn" onclick="toggleHeaderBgPanel(event)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         换背景
@@ -1123,6 +1123,49 @@ function onDropLink(e, targetId) {
     el.value = (el.value ? el.value + ' ' : '') + url;
   }
   el.focus();
+}
+
+// ── 每日金句自定义 ──
+function editMotto() {
+  const el = document.getElementById('motto');
+  if (!el) return;
+  const cur = el.textContent;
+  el.setAttribute('contenteditable', 'true');
+  el.focus();
+  // 全选
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  function done() {
+    el.removeAttribute('contenteditable');
+    el.removeEventListener('blur', done);
+    el.removeEventListener('keydown', onKey);
+    const val = el.textContent.trim();
+    if (val) {
+      localStorage.setItem('td_motto_custom', val);
+    }
+  }
+  function onKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') {
+      el.textContent = cur;
+      el.removeAttribute('contenteditable');
+      el.removeEventListener('blur', done);
+      el.removeEventListener('keydown', onKey);
+    }
+  }
+  el.addEventListener('blur', done);
+  el.addEventListener('keydown', onKey);
+}
+function resetMotto(e) {
+  e.preventDefault();
+  if (!confirm('恢复每日自动金句？')) return;
+  localStorage.removeItem('td_motto_custom');
+  const d = new Date();
+  const el = document.getElementById('motto');
+  if (el) el.textContent = MOTTOS[d.getDate() % MOTTOS.length];
 }
 
 // ── 便签 ──
@@ -2018,7 +2061,10 @@ function updateHeader() {
   document.getElementById('view-meta').textContent =
     `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日 · ${days[d.getDay()]}`;
   const mottoEl = document.getElementById('motto');
-  if (mottoEl) mottoEl.textContent = MOTTOS[d.getDate() % MOTTOS.length];
+  if (mottoEl) {
+    const custom = localStorage.getItem('td_motto_custom');
+    mottoEl.textContent = custom !== null ? custom : MOTTOS[d.getDate() % MOTTOS.length];
+  }
   // 同步清单选择器显示
   const cur = lists.find(l => l.id === addListId) || lists[0];
   if (cur) {
