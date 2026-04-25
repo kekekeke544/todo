@@ -426,6 +426,8 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-ng-cat-stat{font-size:11px;color:var(--t3);flex-shrink:0}
 .goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
 .goals-ng-cat-hd:hover .goals-ng-cat-del{display:inline-flex}
+.goals-ng-cat-desc{width:100%;box-sizing:border-box;border:none;outline:none;resize:none;font-family:var(--font);font-size:12px;color:var(--t2);background:transparent;line-height:1.6;padding:4px 0 6px;min-height:22px;overflow:hidden}
+.goals-ng-cat-desc::placeholder{color:var(--t3)}
 .goals-ng-item{display:flex;align-items:center;gap:8px;padding:5px 0 5px 4px;border-radius:4px;transition:background .1s}
 .goals-ng-item:hover{background:var(--hover)}
 .goals-ng-item.done .goals-ng-text{text-decoration:line-through;color:var(--t3)}
@@ -999,7 +1001,7 @@ function renderGoalsView() {
   ['team','personal'].forEach(col => {
     const colLabel = col==='team' ? '团队目标' : '个人目标';
     const cats = data[col] || {};
-    const allItems = Object.values(cats).flat();
+    const allItems = Object.entries(cats).filter(([k])=>k!=='__desc__').map(([,v])=>v).flat();
     const total = allItems.length;
     const done = allItems.filter(x=>x.done).length;
     const pct = total ? Math.round(done/total*100) : 0;
@@ -1025,11 +1027,12 @@ function renderGoalsView() {
     html += `<div class="goals-ng-prog-bar"><div class="goals-ng-prog-fill" style="width:${pct}%"></div></div>`;
 
     // 分类
-    Object.keys(cats).forEach(cat => {
+    Object.keys(cats).filter(c => c !== '__desc__').forEach(cat => {
       const items = cats[cat] || [];
       const catDone = items.filter(x=>x.done).length;
       html += `<div class="goals-ng-cat">`;
       // 分类标题行
+      const catDesc = (((goalsNG[goalsViewYM]||{})[col]||{}).__desc__||{})[cat] || '';
       html += `<div class="goals-ng-cat-hd">
         <div class="goals-ng-cat-name" contenteditable="true"
           data-col="${col}" data-cat="${escHtml(cat)}"
@@ -1040,7 +1043,11 @@ function renderGoalsView() {
         <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-      </div>`;
+      </div>
+      <textarea class="goals-ng-cat-desc" placeholder="写下这个分类的总体目标…"
+        onblur="saveCatDesc('${col}','${escHtml(cat)}',this)"
+        oninput="autoResizeCatDesc(this)"
+      >${escHtml(catDesc)}</textarea>`;
       // 目标条目
       items.forEach(g => {
         html += `<div class="goals-ng-item ${g.done?'done':''} ${g.warn?'warned':''}">
@@ -1089,9 +1096,15 @@ function changeGoalsMonth(delta) {
     if (srcData) {
       goalsNG[goalsViewYM] = { team: {}, personal: {} };
       ['team', 'personal'].forEach(col => {
-        Object.keys(srcData[col] || {}).forEach(cat => {
+        const srcCol = srcData[col] || {};
+        Object.keys(srcCol).forEach(cat => {
+          if (cat === '__desc__') return;
           goalsNG[goalsViewYM][col][cat] = [];
         });
+        // 复制分类总目标描述
+        if (srcCol.__desc__) {
+          goalsNG[goalsViewYM][col].__desc__ = Object.assign({}, srcCol.__desc__);
+        }
       });
       saveGoalsNG();
     }
@@ -1117,6 +1130,16 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.goals-col-bg-picker').forEach(p => p.classList.remove('show'));
 });
 
+function saveCatDesc(col, cat, el) {
+  const data = getGoalsMonth(goalsViewYM);
+  if (!data[col].__desc__) data[col].__desc__ = {};
+  data[col].__desc__[cat] = el.value.trim();
+  saveGoalsNG();
+}
+function autoResizeCatDesc(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
 function toggleGoalWarn(col, cat, id) {
   const data = getGoalsMonth(goalsViewYM);
   const arr = (data[col][cat] || []);
