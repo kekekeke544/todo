@@ -386,8 +386,16 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 .sb-stickies{border-top:1px solid var(--border);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:8px 10px}
 .sb-stickies-hd{font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;flex-shrink:0}
-#sb-sticky-pad{flex:1;resize:none;border:none;outline:none;background:transparent;font-family:var(--font);font-size:12px;color:var(--text);line-height:1.6;width:100%;box-sizing:border-box;overflow-y:auto}
-#sb-sticky-pad::placeholder{color:var(--t3)}
+#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:12px;color:var(--text);line-height:1.6;width:100%;box-sizing:border-box;overflow-y:auto;word-break:break-word;white-space:pre-wrap}
+#sb-sticky-pad:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
+#sb-sticky-pad a{color:var(--accent);text-decoration:underline;cursor:pointer}
+#sb-sticky-pad b,#sb-sticky-pad strong{font-weight:700}
+/* 右键菜单 */
+.sp-ctx-menu{position:fixed;background:var(--bg);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:4px 0;z-index:9999;min-width:130px;display:none}
+.sp-ctx-menu.show{display:block}
+.sp-ctx-item{padding:7px 14px;font-size:13px;font-family:var(--font);color:var(--text);cursor:pointer;white-space:nowrap}
+.sp-ctx-item:hover{background:var(--hover)}
+.sp-ctx-sep{height:1px;background:var(--border);margin:3px 0}
 </style>
 </head>
 <body>
@@ -426,7 +434,15 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <!-- ── 便签区 ── -->
   <div class="sb-stickies" id="sb-stickies-area">
     <div class="sb-stickies-hd">便签</div>
-    <textarea id="sb-sticky-pad" placeholder="记录常用链接、要点…" oninput="saveStickyPad()"></textarea>
+    <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="记录常用链接、要点…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)"></div>
+    <!-- 右键菜单 -->
+    <div class="sp-ctx-menu" id="sp-ctx-menu">
+      <div class="sp-ctx-item" onclick="spCtxBold()"><b>B</b> 加粗</div>
+      <div class="sp-ctx-item" onclick="spCtxLink()">🔗 添加链接</div>
+      <div class="sp-ctx-sep"></div>
+      <div class="sp-ctx-item" onclick="spCtxRemoveLink()">取消链接</div>
+      <div class="sp-ctx-item" onclick="spCtxClear()">清除格式</div>
+    </div>
   </div>
 </nav>
 
@@ -1112,12 +1128,72 @@ function onDropLink(e, targetId) {
 // ── 便签 ──
 function saveStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
-  if (el) localStorage.setItem('td_sticky_pad', el.value);
+  if (el) localStorage.setItem('td_sticky_pad', el.innerHTML);
 }
 function loadStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
-  if (el) el.value = localStorage.getItem('td_sticky_pad') || '';
+  if (el) el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
 }
+
+// 右键菜单
+let _spSavedRange = null;
+function onStickyPadCtx(e) {
+  e.preventDefault();
+  // 保存当前选区
+  const sel = window.getSelection();
+  _spSavedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+  const menu = document.getElementById('sp-ctx-menu');
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 160) + 'px';
+  menu.classList.add('show');
+}
+function spCtxClose() {
+  document.getElementById('sp-ctx-menu').classList.remove('show');
+}
+function spCtxRestoreRange() {
+  if (_spSavedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(_spSavedRange);
+  }
+}
+function spCtxBold() {
+  spCtxRestoreRange();
+  document.execCommand('bold', false, null);
+  saveStickyPad();
+  spCtxClose();
+}
+function spCtxLink() {
+  spCtxClose();
+  const url = prompt('输入链接地址：');
+  if (!url || !url.startsWith('http')) return;
+  spCtxRestoreRange();
+  document.execCommand('createLink', false, url);
+  // 让链接在新标签打开
+  document.querySelectorAll('#sb-sticky-pad a').forEach(a => {
+    a.setAttribute('target', '_blank');
+    a.setAttribute('rel', 'noopener');
+    a.onclick = e => e.stopPropagation();
+  });
+  saveStickyPad();
+}
+function spCtxRemoveLink() {
+  spCtxRestoreRange();
+  document.execCommand('unlink', false, null);
+  saveStickyPad();
+  spCtxClose();
+}
+function spCtxClear() {
+  spCtxRestoreRange();
+  document.execCommand('removeFormat', false, null);
+  saveStickyPad();
+  spCtxClose();
+}
+// 点击别处关闭右键菜单
+document.addEventListener('click', e => {
+  const menu = document.getElementById('sp-ctx-menu');
+  if (menu && !menu.contains(e.target)) spCtxClose();
+});
 
 // ── Header 背景设置 ──
 const HEADER_BG_COLORS = [
