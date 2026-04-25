@@ -259,9 +259,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
-  <div class="ws">
+  <div class="ws" style="cursor:default">
     <div class="ws-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-    我的清单
+    <span id="app-name" ondblclick="editAppName()" title="双击编辑名称" style="cursor:text;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">我的清单</span>
+    <input id="app-name-input" onblur="saveAppName()" onkeydown="if(event.key==='Enter')saveAppName();if(event.key==='Escape')cancelAppName()" style="display:none;flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:14px;font-weight:700;color:var(--text);min-width:0"/>
   </div>
   <div class="sb-sec">智能清单</div>
   <div class="sb-item active" data-view="today" onclick="switchView('today',this)">
@@ -276,9 +277,12 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <div class="sb-item" data-view="notes" onclick="switchView('notes',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> 资料库 <span class="sc" id="cnt-notes"></span>
   </div>
-  <div class="sb-sec" style="margin-top:8px">我的清单</div>
+  <div class="sb-sec" style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding-right:14px">
+    <span id="my-lists-label" ondblclick="editListsLabel()" title="双击编辑" style="cursor:text">我的清单</span>
+    <input id="my-lists-input" onblur="saveListsLabel()" onkeydown="if(event.key==='Enter')saveListsLabel();if(event.key==='Escape')cancelListsLabel()" style="display:none;border:none;outline:none;background:transparent;font-family:var(--font);font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;width:80px"/>
+    <button onclick="showListModal(null)" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;transition:color .1s" title="新建清单" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--t3)'">+</button>
+  </div>
   <div class="sb-lists" id="sb-lists"></div>
-  <button class="new-list-btn" onclick="showListModal(null)">＋ 新建清单</button>
 </nav>
 
 <!-- MAIN -->
@@ -510,6 +514,8 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
 let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","color":"#64748b"},{"id":"work","name":"工作","color":"#2383e2"},{"id":"life","name":"生活","color":"#16a34a"}]');
 let notes = JSON.parse(localStorage.getItem('td_notes')||'[]');
+let appName = localStorage.getItem('td_appname') || '我的清单';
+let listsLabel = localStorage.getItem('td_listslabel') || '我的清单';
 
 let curView = 'today', curFilter = 'active';
 let editingListId = null, editingNoteId = null, editingTaskId = null;
@@ -566,6 +572,52 @@ function save() {
   localStorage.setItem('td_notes', JSON.stringify(notes));
 }
 function p2(n) { return String(n).padStart(2,'0'); }
+
+// ── App 名称编辑 ──
+function editAppName() {
+  const span = document.getElementById('app-name');
+  const inp  = document.getElementById('app-name-input');
+  inp.value = appName;
+  span.style.display = 'none';
+  inp.style.display = 'block';
+  inp.focus(); inp.select();
+}
+function saveAppName() {
+  const inp = document.getElementById('app-name-input');
+  const v = inp.value.trim() || '我的清单';
+  appName = v;
+  localStorage.setItem('td_appname', v);
+  document.getElementById('app-name').textContent = v;
+  document.getElementById('app-name').style.display = '';
+  inp.style.display = 'none';
+}
+function cancelAppName() {
+  document.getElementById('app-name').style.display = '';
+  document.getElementById('app-name-input').style.display = 'none';
+}
+
+// ── 我的清单 标题编辑 ──
+function editListsLabel() {
+  const span = document.getElementById('my-lists-label');
+  const inp  = document.getElementById('my-lists-input');
+  inp.value = listsLabel;
+  span.style.display = 'none';
+  inp.style.display = 'block';
+  inp.focus(); inp.select();
+}
+function saveListsLabel() {
+  const inp = document.getElementById('my-lists-input');
+  const v = inp.value.trim() || '我的清单';
+  listsLabel = v;
+  localStorage.setItem('td_listslabel', v);
+  document.getElementById('my-lists-label').textContent = v;
+  document.getElementById('my-lists-label').style.display = '';
+  inp.style.display = 'none';
+}
+function cancelListsLabel() {
+  document.getElementById('my-lists-label').style.display = '';
+  document.getElementById('my-lists-input').style.display = 'none';
+}
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
@@ -1207,6 +1259,9 @@ if(initList) {
   document.getElementById('ls-icon').innerHTML = listDot(initList);
   document.getElementById('ls-name').textContent = initList.name;
 }
+// 初始化 app 名称和清单标题
+document.getElementById('app-name').textContent = appName;
+document.getElementById('my-lists-label').textContent = listsLabel;
 render();
 </script>
 </body>
