@@ -50,7 +50,21 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.header{padding:28px 44px 0;flex-shrink:0}
+.header{padding:28px 44px 0;flex-shrink:0;position:relative;background-size:cover;background-position:center;border-radius:0 0 12px 12px;transition:background .3s}
+.header-has-bg{padding-bottom:24px}
+.header-bg-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.75);backdrop-filter:blur(4px);border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;gap:5px;font-family:var(--font)}
+.header:hover .header-bg-btn{opacity:1}
+.header-bg-panel{position:absolute;top:40px;right:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:300;padding:14px 16px;width:260px;display:none}
+.header-bg-panel.open{display:block}
+.hbp-label{font-size:11px;color:var(--t3);font-weight:600;margin-bottom:8px;letter-spacing:.03em}
+.hbp-colors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.hbp-color{width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .12s}
+.hbp-color:hover,.hbp-color.active{border-color:var(--text);transform:scale(1.1)}
+.hbp-upload-row{display:flex;gap:8px;align-items:center}
+.hbp-upload-btn{flex:1;border:1.5px dashed var(--border);border-radius:6px;padding:7px;font-size:12px;color:var(--t3);text-align:center;cursor:pointer;font-family:var(--font);background:none;transition:all .12s}
+.hbp-upload-btn:hover{border-color:#aaa;color:var(--text)}
+.hbp-clear{border:1px solid var(--border);background:none;border-radius:6px;padding:7px 12px;font-size:12px;color:var(--t3);cursor:pointer;font-family:var(--font);transition:all .12s}
+.hbp-clear:hover{color:#e03e2d;border-color:#e03e2d}
 .header h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .header .meta{font-size:13px;color:var(--t3);margin-top:3px}
 .header .motto{font-size:13px;color:var(--t2);margin-top:5px;font-style:italic;opacity:.8;line-height:1.5}
@@ -363,9 +377,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   <div class="sb-item" data-view="all" onclick="switchView('all',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> 全部任务 <span class="sc" id="cnt-all"></span>
   </div>
-  <div class="sb-item" data-view="done" onclick="switchView('done',this)">
-    <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> 已完成 <span class="sc" id="cnt-done"></span>
-  </div>
+
   <div class="sb-item" data-view="notes" onclick="switchView('notes',this)">
     <span class="si"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> 资料库 <span class="sc" id="cnt-notes"></span>
   </div>
@@ -385,10 +397,26 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
   <!-- ── 任务视图 ── -->
   <div id="task-view">
-    <div class="header">
+    <div class="header" id="main-header">
       <h1 id="view-title">今天</h1>
       <div class="meta" id="view-meta"></div>
       <div class="motto" id="motto"></div>
+      <button class="header-bg-btn" onclick="toggleHeaderBgPanel(event)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        换背景
+      </button>
+      <div class="header-bg-panel" id="header-bg-panel">
+        <div class="hbp-label">预设颜色</div>
+        <div class="hbp-colors" id="hbp-color-list"></div>
+        <div class="hbp-label">背景图片</div>
+        <div class="hbp-upload-row">
+          <label class="hbp-upload-btn">
+            📁 选择图片
+            <input type="file" accept="image/*" style="display:none" onchange="onHeaderBgUpload(this)"/>
+          </label>
+          <button class="hbp-clear" onclick="clearHeaderBg()">清除</button>
+        </div>
+      </div>
     </div>
 
     <div class="add-wrap">
@@ -963,6 +991,105 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
+// ── Header 背景设置 ──
+const HEADER_BG_COLORS = [
+  { label:'无', value:'' },
+  { label:'浅蓝', value:'#e8f0fe' },
+  { label:'浅绿', value:'#e6f4ea' },
+  { label:'浅黄', value:'#fef9e7' },
+  { label:'浅橙', value:'#fdebd0' },
+  { label:'浅粉', value:'#fce4ec' },
+  { label:'浅紫', value:'#f3e5f5' },
+  { label:'浅灰', value:'#f5f5f5' },
+  { label:'深蓝', value:'#1a237e' },
+  { label:'深绿', value:'#1b5e20' },
+  { label:'深灰', value:'#263238' },
+  { label:'炭黑', value:'#212121' },
+];
+
+let headerBgType = localStorage.getItem('td_header_bg_type') || ''; // 'color' | 'image' | ''
+let headerBgValue = localStorage.getItem('td_header_bg_value') || '';
+
+function initHeaderBg() {
+  // 渲染颜色选项
+  const list = document.getElementById('hbp-color-list');
+  if (list) {
+    list.innerHTML = HEADER_BG_COLORS.map(c => {
+      const isEmpty = !c.value;
+      return `<div class="hbp-color ${headerBgType==='color' && headerBgValue===c.value?'active':''}"
+        style="background:${isEmpty?'#fff':c.value};${isEmpty?'border:2px dashed #ccc':''}"
+        title="${c.label}"
+        onclick="setHeaderBgColor('${c.value}')"></div>`;
+    }).join('');
+  }
+  applyHeaderBg();
+}
+
+function applyHeaderBg() {
+  const header = document.getElementById('main-header');
+  if (!header) return;
+  if (headerBgType === 'color' && headerBgValue) {
+    header.style.background = headerBgValue;
+    header.style.backgroundImage = '';
+    header.classList.add('header-has-bg');
+  } else if (headerBgType === 'image' && headerBgValue) {
+    header.style.background = '';
+    header.style.backgroundImage = `url(${headerBgValue})`;
+    header.style.backgroundSize = 'cover';
+    header.style.backgroundPosition = 'center';
+    header.classList.add('header-has-bg');
+  } else {
+    header.style.background = '';
+    header.style.backgroundImage = '';
+    header.classList.remove('header-has-bg');
+  }
+  // 深色背景时标题变白
+  const darkBgs = ['#1a237e','#1b5e20','#263238','#212121'];
+  const isDark = headerBgType==='color' && darkBgs.includes(headerBgValue);
+  header.style.color = isDark ? '#fff' : '';
+  const meta = document.getElementById('view-meta');
+  const motto = document.getElementById('motto');
+  if (meta) meta.style.color = isDark ? 'rgba(255,255,255,.7)' : '';
+  if (motto) motto.style.color = isDark ? 'rgba(255,255,255,.6)' : '';
+}
+
+function setHeaderBgColor(color) {
+  headerBgType = color ? 'color' : '';
+  headerBgValue = color;
+  localStorage.setItem('td_header_bg_type', headerBgType);
+  localStorage.setItem('td_header_bg_value', headerBgValue);
+  initHeaderBg();
+}
+
+function onHeaderBgUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    headerBgType = 'image';
+    headerBgValue = e.target.result;
+    localStorage.setItem('td_header_bg_type', headerBgType);
+    localStorage.setItem('td_header_bg_value', headerBgValue);
+    initHeaderBg();
+    document.getElementById('header-bg-panel').classList.remove('open');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearHeaderBg() {
+  headerBgType = ''; headerBgValue = '';
+  localStorage.setItem('td_header_bg_type', '');
+  localStorage.setItem('td_header_bg_value', '');
+  initHeaderBg();
+  document.getElementById('header-bg-panel').classList.remove('open');
+}
+
+function toggleHeaderBgPanel(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('header-bg-panel');
+  panel.classList.toggle('open');
+}
+
 // ── 编辑弹窗时间滚轮 ──
 const EDIT_MINS = ['00','05','10','15','20','25','30','35','40','45','50','55'];
 
@@ -1937,24 +2064,27 @@ function switchView(view, el) {
   if (view === 'goals') {
     const gv = document.getElementById('goals-view-panel');
     tv.style.display = 'none'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'flex';
+    document.querySelector('.add-wrap').style.display = 'none';
     renderGoalsView();
     return;
   }
   const gv = document.getElementById('goals-view-panel');
   if (view === 'notes') {
     tv.style.display = 'none'; nv.style.display = 'flex'; nev.style.display = 'none'; gv.style.display = 'none';
+    document.querySelector('.add-wrap').style.display = 'none';
     renderNotes();
   } else if (view === 'week') {
     tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'none';
     renderSidebar();
     updateHeader();
-    // hide filter bar and show week grid
     document.getElementById('filter-bar').style.display = 'none';
     document.querySelector('.divider').style.display = 'none';
+    document.querySelector('.add-wrap').style.display = 'none';
     renderWeekView();
   } else {
     document.getElementById('filter-bar').style.display = '';
     document.querySelector('.divider').style.display = '';
+    document.querySelector('.add-wrap').style.display = '';
     tv.style.display = 'flex'; nv.style.display = 'none'; nev.style.display = 'none'; gv.style.display = 'none';
     render();
   }
@@ -2146,6 +2276,15 @@ if (!localStorage.getItem('td_goalsv2')) {
 }
 
 render();
+initHeaderBg();
+
+// 点击空白关闭 header bg panel
+document.addEventListener('click', e => {
+  const panel = document.getElementById('header-bg-panel');
+  if (panel && panel.classList.contains('open') && !panel.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
