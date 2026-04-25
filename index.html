@@ -50,7 +50,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.header{padding:28px 44px 0;flex-shrink:0;position:relative;background-size:cover;background-position:center;border-radius:0 0 12px 12px;transition:background .3s}
+.header{padding:18px 44px 0;flex-shrink:0;position:relative;background-size:cover;background-position:center;border-radius:0 0 12px 12px;transition:background .3s}
 .header-has-bg{padding-bottom:24px}
 .header-bg-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.75);backdrop-filter:blur(4px);border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer;opacity:0;transition:opacity .15s;display:flex;align-items:center;gap:5px;font-family:var(--font)}
 .header:hover .header-bg-btn{opacity:1}
@@ -68,10 +68,6 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .header h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
 .header .meta{font-size:13px;color:var(--t3);margin-top:3px}
 .header .motto{font-size:13px;color:var(--t2);margin-top:5px;font-style:italic;opacity:.8;line-height:1.5}
-#header-note:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
-#header-note a{color:var(--accent);text-decoration:underline;cursor:pointer}
-#header-note b,#header-note strong{font-weight:700}
-
 /* ── ADD BAR ── */
 .add-wrap{padding:16px 44px 0;flex-shrink:0}
 .add-wrap.hidden{display:none}
@@ -320,6 +316,32 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .wt-now-line{position:absolute;left:0;right:0;height:2px;background:var(--accent);z-index:3;pointer-events:none}
 .wt-now-dot{position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
 
+/* 本周列表视图 */
+.wk-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.wk-nav-btn{border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer;color:var(--text);transition:background .1s}
+.wk-nav-btn:hover{background:var(--hover)}
+.wk-nav-range{font-size:13px;font-weight:600;color:var(--text)}
+.wk-days-wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:40px}
+.wk-day-block{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.wk-day-block.today{border-color:var(--text)}
+.wk-day-hd{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hover)}
+.wk-day-block.today .wk-day-hd{background:var(--text)}
+.wk-day-block.today .wk-day-hd *{color:#fff !important}
+.wk-day-name{font-size:13px;font-weight:700;color:var(--text)}
+.wk-day-name.past{color:var(--t3)}
+.wk-day-name.today{color:var(--text)}
+.wk-day-date{font-size:11px;color:var(--t3)}
+.wk-day-cnt{font-size:11px;color:var(--t3);margin-left:auto}
+.wk-day-empty{padding:8px 14px;font-size:12px;color:var(--t3)}
+.wk-task-row{display:flex;align-items:center;gap:8px;padding:7px 14px;border-top:1px solid var(--border);cursor:pointer;transition:background .1s}
+.wk-task-row:hover{background:var(--hover)}
+.wk-task-row.done .wk-task-title{text-decoration:line-through;color:var(--t3)}
+.wk-task-check{width:14px;height:14px;border:1.5px solid #ccc;border-radius:50%;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s}
+.wk-task-check.checked{background:#333;border-color:#333}
+.wk-task-check.checked:after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.wk-task-title{flex:1;font-size:13px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-task-time{font-size:11px;color:var(--t3);flex-shrink:0;white-space:nowrap}
+
 .goals-section{border-top:1px solid var(--border);margin-top:8px;padding:8px 0 4px}
 .goals-header{display:flex;align-items:center;justify-content:space-between;padding:2px 14px 6px;cursor:pointer}
 .goals-header-label{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);text-transform:uppercase;display:flex;align-items:center;gap:5px;user-select:none}
@@ -495,12 +517,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <h1 id="view-title">今天</h1>
       <div class="meta" id="view-meta"></div>
       <div class="motto" id="motto" title="双击自定义，右键恢复每日自动" ondblclick="editMotto()" oncontextmenu="resetMotto(event)" style="cursor:text"></div>
-      <div id="header-note" contenteditable="true" spellcheck="false"
-        data-placeholder="在这里写备忘、放链接…"
-        oninput="saveHeaderNote()"
-        oncontextmenu="onHeaderNoteCtx(event)"
-        onmousedown="handleCtxLinkClick(event)"
-        style="font-size:13px;color:var(--t2);margin-top:6px;line-height:1.6;outline:none;min-height:18px;word-break:break-word;white-space:pre-wrap;max-width:680px"></div>
+
       <button class="header-bg-btn" onclick="toggleHeaderBgPanel(event)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         换背景
@@ -1362,28 +1379,6 @@ function onDropLink(e, targetId) {
   el.focus();
 }
 
-// ── 头部备忘框 ──
-function saveHeaderNote() {
-  const el = document.getElementById('header-note');
-  if (el) localStorage.setItem('td_header_note', el.innerHTML);
-}
-function loadHeaderNote() {
-  const el = document.getElementById('header-note');
-  if (el) el.innerHTML = localStorage.getItem('td_header_note') || '';
-}
-let _hnSavedRange = null;
-function onHeaderNoteCtx(e) {
-  e.preventDefault();
-  const sel = window.getSelection();
-  _hnSavedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
-  const menu = document.getElementById('sp-ctx-menu');
-  // 复用便签右键菜单，但指向 header-note
-  _ctxTarget = 'header';
-  menu.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px';
-  menu.style.top = Math.min(e.clientY, window.innerHeight - 160) + 'px';
-  menu.classList.add('show');
-}
-
 // ── 每日金句自定义 ──
 function editMotto() {
   const el = document.getElementById('motto');
@@ -1437,12 +1432,10 @@ function loadStickyPad() {
   if (el) el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
 }
 
-// 右键菜单（便签 + 头部备忘 共用）
+// 右键菜单（便签）
 let _spSavedRange = null;
-let _ctxTarget = 'sticky'; // 'sticky' | 'header'
 function onStickyPadCtx(e) {
   e.preventDefault();
-  _ctxTarget = 'sticky';
   const sel = window.getSelection();
   _spSavedRange = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
   const menu = document.getElementById('sp-ctx-menu');
@@ -1461,8 +1454,7 @@ function spCtxRestoreRange() {
   }
 }
 function spCtxSave() {
-  if (_ctxTarget === 'header') saveHeaderNote();
-  else saveStickyPad();
+  saveStickyPad();
 }
 function spCtxBold() {
   spCtxRestoreRange();
@@ -1475,8 +1467,7 @@ function spCtxLink() {
   if (!url || !url.startsWith('http')) return;
   spCtxRestoreRange();
   document.execCommand('createLink', false, url);
-  const padId = _ctxTarget === 'header' ? 'header-note' : 'sb-sticky-pad';
-  document.querySelectorAll(`#${padId} a`).forEach(a => {
+  document.querySelectorAll(`#sb-sticky-pad a`).forEach(a => {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener');
   });
@@ -2467,11 +2458,10 @@ function formatViewDate() {
 
 function renderWeekView() {
   const main = document.getElementById('task-list');
-  // 计算周一（考虑 weekOffset）
   const now = new Date();
   const base = new Date(now);
   base.setDate(now.getDate() + weekOffset * 7);
-  const dayOfWeek = base.getDay(); // 0=日
+  const dayOfWeek = base.getDay();
   const monday = new Date(base);
   monday.setDate(base.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
   monday.setHours(0,0,0,0);
@@ -2482,123 +2472,103 @@ function renderWeekView() {
   });
   const todayStr2 = todayStr();
   const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
-  // 周范围文字
   const sunday = days[6];
   const rangeText = `${monday.getMonth()+1}月${monday.getDate()}日 - ${sunday.getMonth()+1}月${sunday.getDate()}日`;
-  // 统计本周任务数
+
+  // 统计
   let weekTotal = 0, weekDone = 0, weekPending = 0, weekOverdue = 0;
   const nowTs = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   days.forEach(d => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
     tasks.filter(t => t.dt && t.dt.startsWith(ds)).forEach(t => {
       weekTotal++;
-      if (t.done) { weekDone++; }
-      else {
-        weekPending++;
-        if (d < nowTs) weekOverdue++;
-      }
+      if (t.done) weekDone++;
+      else { weekPending++; if (d < nowTs) weekOverdue++; }
     });
   });
+
   // 更新侧边栏计数
   const wkEl = document.getElementById('cnt-week');
-  if(wkEl) wkEl.textContent = weekPending || '';
+  if (wkEl) wkEl.textContent = weekPending || '';
+
   // 标题
   const titleEl = document.querySelector('.view-title');
-  if (titleEl) {
-    titleEl.textContent = weekOffset === 0 ? '本周一览' : weekOffset < 0 ? '历史周览' : '未来周览';
-  }
+  if (titleEl) titleEl.textContent = weekOffset === 0 ? '本周一览' : weekOffset < 0 ? '历史周览' : '未来周览';
+
   // 翻周导航
   const backBtn = weekOffset !== 0
-    ? `<button onclick="changeWeek(0)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">回本周</button>`
-    : '';
-  const navHtml = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-    <button onclick="changeWeek(-1)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">← 上周</button>
-    <span style="font-size:13px;font-weight:600;color:var(--text)">${rangeText}</span>
-    <button onclick="changeWeek(1)" style="border:1px solid var(--border);background:var(--bg);border-radius:6px;padding:4px 12px;font-size:12px;font-family:var(--font);cursor:pointer">下周 →</button>
+    ? `<button onclick="changeWeek(0)" class="wk-nav-btn">回本周</button>` : '';
+  const navHtml = `<div class="wk-nav">
+    <button onclick="changeWeek(-1)" class="wk-nav-btn">← 上周</button>
+    <span class="wk-nav-range">${rangeText}</span>
+    <button onclick="changeWeek(1)" class="wk-nav-btn">下周 →</button>
     ${backBtn}
   </div>`;
 
-  const HOUR_H = 48; // px per hour
-  const WEEK_START_H = 7; // 从7点开始显示
-  const WEEK_HOURS = 24 - WEEK_START_H; // 17小时
-  const COL_TOTAL_H = HOUR_H * WEEK_HOURS;
+  const summaryHtml = `<div class="week-summary">共 ${weekTotal} 件 · 已完成 <b>${weekDone}</b> · 待完成 <b>${weekPending}</b>${weekOverdue ? ` · <span style="color:#e53e3e">逾期 ${weekOverdue}</span>` : ''}</div>`;
 
-  // 生成时间轴 HTML
-  let timeAxisHtml = '<div class="wt-time-axis">';
-  for(let h = WEEK_START_H; h < 24; h++) {
-    timeAxisHtml += `<div class="wt-time-slot">${p2(h)}:00</div>`;
-  }
-  timeAxisHtml += '</div>';
-
-  // 生成列头
-  let colHdsHtml = '<div class="wt-col-hds">';
-  days.forEach((d,i) => {
-    const isToday = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}` === todayStr2;
-    colHdsHtml += `<div class="wt-col-hd ${isToday?'today':''}">${dayNames[i]}<br><span style="font-size:10px;font-weight:400">${p2(d.getMonth()+1)}/${p2(d.getDate())}</span></div>`;
-  });
-  colHdsHtml += '</div>';
-
-  // 生成每天列内容
-  let colsHtml = '<div class="wt-cols-body">';
-  days.forEach((d,i) => {
+  // 按天渲染列表
+  let daysHtml = '';
+  days.forEach((d, i) => {
     const ds = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
     const isToday = ds === todayStr2;
-    const dayTasks = tasks.filter(t => t.dt && t.dt.startsWith(ds));
+    const isPast = d < nowTs;
 
-    let colHtml = `<div class="wt-col" style="height:${COL_TOTAL_H}px">`;
+    // 该天任务，按时间排序（有时间的升序，无时间的放最后）
+    const dayTasks = tasks
+      .filter(t => t.dt && t.dt.startsWith(ds))
+      .sort((a, b) => {
+        const aT = a.dt && a.dt.includes('T') ? a.dt : '9999';
+        const bT = b.dt && b.dt.includes('T') ? b.dt : '9999';
+        return aT < bT ? -1 : aT > bT ? 1 : 0;
+      });
 
-    // 每小时分隔线
-    for(let h = 0; h < WEEK_HOURS; h++) {
-      colHtml += `<div class="wt-hour-line" style="top:${h*HOUR_H}px"></div>`;
-    }
+    if (dayTasks.length === 0 && !isToday) return; // 空天跳过（今天始终显示）
 
-    // 当前时间线（今天）
-    if(isToday) {
-      const now2 = new Date();
-      const nowMin = now2.getHours()*60 + now2.getMinutes() - WEEK_START_H*60;
-      const nowTop = nowMin * HOUR_H / 60;
-      colHtml += `<div class="wt-now-line" style="top:${nowTop}px"><div class="wt-now-dot"></div></div>`;
-    }
+    const doneCnt = dayTasks.filter(t=>t.done).length;
+    const dateLabel = `${p2(d.getMonth()+1)}/${p2(d.getDate())}`;
 
-    // 任务卡片
-    dayTasks.forEach(t => {
-      const hasTime = t.dt && t.dt.includes('T');
-      let topPx, heightPx, timeLabel='';
-      if(hasTime) {
-        const dtObj = new Date(t.dt);
-        const startMin = dtObj.getHours()*60 + dtObj.getMinutes() - WEEK_START_H*60;
-        topPx = startMin * HOUR_H / 60;
-        let endMin;
-        if(t.dtEnd && t.dtEnd.includes('T')) {
-          const eObj = new Date(t.dtEnd);
-          endMin = eObj.getHours()*60 + eObj.getMinutes();
-          timeLabel = `${p2(dtObj.getHours())}:${p2(dtObj.getMinutes())}-${p2(eObj.getHours())}:${p2(eObj.getMinutes())}`;
-        } else {
-          endMin = startMin + 30;
-          timeLabel = `${p2(dtObj.getHours())}:${p2(dtObj.getMinutes())}`;
+    daysHtml += `<div class="wk-day-block ${isToday?'today':''}">`;
+    daysHtml += `<div class="wk-day-hd">
+      <span class="wk-day-name ${isToday?'today':''} ${isPast&&!isToday?'past':''}">${dayNames[i]}</span>
+      <span class="wk-day-date">${dateLabel}</span>
+      ${dayTasks.length > 0 ? `<span class="wk-day-cnt">${doneCnt}/${dayTasks.length}</span>` : ''}
+    </div>`;
+
+    if (dayTasks.length === 0) {
+      daysHtml += `<div class="wk-day-empty">暂无任务</div>`;
+    } else {
+      dayTasks.forEach(t => {
+        const hasTime = t.dt && t.dt.includes('T');
+        let timeStr = '';
+        if (hasTime) {
+          const dtObj = new Date(t.dt);
+          timeStr = `${p2(dtObj.getHours())}:${p2(dtObj.getMinutes())}`;
+          if (t.dtEnd && t.dtEnd.includes('T')) {
+            const eObj = new Date(t.dtEnd);
+            timeStr += `-${p2(eObj.getHours())}:${p2(eObj.getMinutes())}`;
+          }
         }
-        heightPx = Math.max(18, (endMin - startMin) * HOUR_H / 60);
-      } else {
-        topPx = -1;
-        heightPx = 22;
-        timeLabel = '';
-      }
-      if(topPx >= 0) {
-        colHtml += `<div class="wt-task ${t.done?'done':''} ${t.priority||'none'}" style="top:${topPx}px;height:${heightPx}px" onclick="showEditModal('${t.id}')">
-          <div class="wt-task-title">${escHtml(t.title)}</div>
-          ${timeLabel?`<div class="wt-task-time">${timeLabel}</div>`:''}
+        const priColor = {none:'#aaa',low:'#48bb78',mid:'#f6ad55',high:'#fc8181'}[t.priority||'none'];
+        daysHtml += `<div class="wk-task-row ${t.done?'done':''}" onclick="showEditModal('${t.id}')">
+          <div class="wk-task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
+          <div style="width:4px;height:4px;border-radius:50%;background:${priColor};flex-shrink:0"></div>
+          <div class="wk-task-title">${escHtml(t.title)}</div>
+          ${timeStr ? `<div class="wk-task-time">${timeStr}</div>` : ''}
         </div>`;
-      }
-    });
-
-    colHtml += '</div>';
-    colsHtml += colHtml;
+      });
+    }
+    daysHtml += `</div>`;
   });
-  colsHtml += '</div>';
 
-  const bodyHtml = `<div class="week-timeline">${timeAxisHtml}<div class="wt-cols-area">${colHdsHtml}${colsHtml}</div></div>`;
-
-  main.innerHTML = navHtml + `<div class="week-summary">本周任务共 ${weekTotal} 件 · 已完成 ${weekDone} 件 · 待完成 ${weekPending} 件 · 逾期 ${weekOverdue} 件</div>` + bodyHtml;
+  main.innerHTML = navHtml + summaryHtml + `<div class="wk-days-wrap">${daysHtml}</div>`;
+}
+function toggleDone(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  saveTasks();
+  renderWeekView();
 }
 function changeWeek(delta) {
   weekOffset = delta === 0 ? 0 : weekOffset + delta;
@@ -2931,7 +2901,6 @@ if (!localStorage.getItem('td_goalsv2')) {
 
 render();
 loadStickyPad();
-loadHeaderNote();
 initHeaderBg();
 
 // 点击空白关闭 header bg panel
