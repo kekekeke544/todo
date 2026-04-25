@@ -1015,7 +1015,7 @@ function renderGoalsView() {
   ['team','personal'].forEach(col => {
     const colLabel = col==='team' ? '团队目标' : '个人目标';
     const cats = data[col] || {};
-    const allItems = Object.entries(cats).filter(([k])=>k!=='__desc__'&&k!=='__col_desc__').map(([,v])=>v).flat();
+    const allItems = Object.entries(cats).filter(([k])=>!k.startsWith('__')).map(([,v])=>Array.isArray(v)?v:[]).flat();
     const total = allItems.length;
     const done = allItems.filter(x=>x.done).length;
     const pct = total ? Math.round(done/total*100) : 0;
@@ -1048,7 +1048,8 @@ function renderGoalsView() {
     >${escHtml(colDesc)}</textarea>`;
 
     // 分类
-    Object.keys(cats).filter(c => c !== '__desc__' && c !== '__col_desc__').forEach(cat => {
+    const catOrder = cats.__order__ || Object.keys(cats).filter(c => !c.startsWith('__'));
+    catOrder.filter(c => c !== '__desc__' && c !== '__col_desc__').forEach(cat => {
       const items = cats[cat] || [];
       const catDone = items.filter(x=>x.done).length;
       html += `<div class="goals-ng-cat">`;
@@ -1117,10 +1118,11 @@ function changeGoalsMonth(delta) {
       goalsNG[goalsViewYM] = { team: {}, personal: {} };
       ['team', 'personal'].forEach(col => {
         const srcCol = srcData[col] || {};
-        Object.keys(srcCol).forEach(cat => {
-          if (cat === '__desc__') return;
+        const srcOrder = srcCol.__order__ || Object.keys(srcCol).filter(k => !k.startsWith('__'));
+        srcOrder.forEach(cat => {
           goalsNG[goalsViewYM][col][cat] = [];
         });
+        goalsNG[goalsViewYM][col].__order__ = [...srcOrder];
         // 复制分类总目标描述
         if (srcCol.__desc__) {
           goalsNG[goalsViewYM][col].__desc__ = Object.assign({}, srcCol.__desc__);
@@ -1176,12 +1178,21 @@ function toggleGoalWarn(col, cat, id) {
   if (g) { g.warn = !g.warn; saveGoalsNG(); renderGoalsView(); }
 }
 
+function _getCatOrder(col, data) {
+  if (!data[col].__order__) {
+    // 首次：从现有 key 推断顺序
+    data[col].__order__ = Object.keys(data[col]).filter(k => !k.startsWith('__'));
+  }
+  return data[col].__order__;
+}
+
 function addGoalCat(col, inputEl) {
   const name = inputEl.value.trim();
   if (!name) return;
   const data = getGoalsMonth(goalsViewYM);
   if (!data[col][name]) {
     data[col][name] = [];
+    _getCatOrder(col, data).push(name);
     saveGoalsNG();
     renderGoalsView();
   }
@@ -1192,9 +1203,12 @@ function renameGoalCat(el, col, oldName) {
   const newName = el.innerText.trim();
   if (!newName || newName === oldName) return;
   const data = getGoalsMonth(goalsViewYM);
-  if (data[col][newName]) return; // 已存在
+  if (data[col][newName]) return;
   data[col][newName] = data[col][oldName] || [];
   delete data[col][oldName];
+  const order = _getCatOrder(col, data);
+  const idx = order.indexOf(oldName);
+  if (idx >= 0) order[idx] = newName;
   saveGoalsNG();
   renderGoalsView();
 }
@@ -1203,6 +1217,9 @@ function deleteGoalCat(col, cat) {
   if (!confirm(`删除分类「${cat}」及其所有目标？`)) return;
   const data = getGoalsMonth(goalsViewYM);
   delete data[col][cat];
+  const order = _getCatOrder(col, data);
+  const idx = order.indexOf(cat);
+  if (idx >= 0) order.splice(idx, 1);
   saveGoalsNG();
   renderGoalsView();
 }
