@@ -578,14 +578,44 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       </div>
       <div>
         <label>循环</label>
-        <select id="edit-repeat">
-          <option value="none">不重复</option>
-          <option value="daily">每天</option>
-          <option value="weekday">每个工作日</option>
-          <option value="weekly">每周</option>
-          <option value="monthly">每月</option>
-          <option value="yearly">每年</option>
-        </select>
+        <div style="position:relative">
+          <select id="edit-repeat" onchange="onEditRepeatChange(this)">
+            <option value="none">不重复</option>
+            <option value="daily">每天</option>
+            <option value="weekday">每个工作日</option>
+            <option value="weekly">每周</option>
+            <option value="monthly">每月</option>
+            <option value="yearly">每年</option>
+            <option value="custom">自定义…</option>
+          </select>
+          <div id="edit-custom-repeat-display" style="display:none;margin-top:4px;font-size:12px;color:var(--accent);cursor:pointer" onclick="openEditCustomRepeat()"></div>
+          <div class="custom-repeat-panel" id="edit-custom-repeat-panel">
+            <div class="crp-label">重复频率</div>
+            <div class="crp-unit-row">
+              <button class="crp-unit-btn active" data-eunit="day" onclick="ecrpSelectUnit('day',this)">天</button>
+              <button class="crp-unit-btn" data-eunit="week" onclick="ecrpSelectUnit('week',this)">周</button>
+              <button class="crp-unit-btn" data-eunit="month" onclick="ecrpSelectUnit('month',this)">月</button>
+            </div>
+            <div class="crp-label">每隔</div>
+            <div class="crp-num-row" id="edit-crp-nums"></div>
+            <div id="edit-crp-week-section" style="display:none">
+              <div class="crp-label">星期</div>
+              <div class="crp-week-row">
+                <div class="crp-wd active" data-ewd="1" onclick="ecrpToggleWd(this)">一</div>
+                <div class="crp-wd" data-ewd="2" onclick="ecrpToggleWd(this)">二</div>
+                <div class="crp-wd" data-ewd="3" onclick="ecrpToggleWd(this)">三</div>
+                <div class="crp-wd" data-ewd="4" onclick="ecrpToggleWd(this)">四</div>
+                <div class="crp-wd" data-ewd="5" onclick="ecrpToggleWd(this)">五</div>
+                <div class="crp-wd" data-ewd="6" onclick="ecrpToggleWd(this)">六</div>
+                <div class="crp-wd" data-ewd="0" onclick="ecrpToggleWd(this)">日</div>
+              </div>
+            </div>
+            <div class="crp-actions">
+              <button style="background:var(--sb-hover);color:var(--t2)" onclick="cancelEditCustomRepeat()">取消</button>
+              <button style="background:var(--text);color:#fff" onclick="confirmEditCustomRepeat()">确定</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <label>日期时间</label>
@@ -1233,7 +1263,16 @@ function openEditModal(id) {
   document.getElementById('edit-title').value = t.title;
   document.getElementById('edit-body').value = t.body || '';
   document.getElementById('edit-prio').value = t.priority || 'none';
-  document.getElementById('edit-repeat').value = t.repeat || 'none';
+  // 重置自定义循环状态
+  editCustomRepeatVal = '';
+  document.getElementById('edit-custom-repeat-display').style.display = 'none';
+  document.getElementById('edit-custom-repeat-panel').classList.remove('open');
+  if (t.repeat && t.repeat.startsWith('custom:')) {
+    document.getElementById('edit-repeat').value = 'custom';
+    loadEditCustomRepeat(t.repeat);
+  } else {
+    document.getElementById('edit-repeat').value = t.repeat || 'none';
+  }
   document.getElementById('edit-dt').value = t.dt || '';
   // 结束时间：已有 dtEnd 用 dtEnd，否则开始时间+30分钟
   if (t.dtEnd) {
@@ -1255,13 +1294,102 @@ function hideEditModal() {
   editingTaskId = null;
   document.getElementById('edit-modal').style.display = 'none';
 }
+// ── 编辑弹窗自定义循环 ──
+let ecrpUnit='day', ecrpNum=1, ecrpWds=[1], editCustomRepeatVal='';
+
+function onEditRepeatChange(sel) {
+  if (sel.value === 'custom') {
+    openEditCustomRepeat();
+  } else {
+    editCustomRepeatVal = '';
+    document.getElementById('edit-custom-repeat-display').style.display = 'none';
+    document.getElementById('edit-custom-repeat-panel').classList.remove('open');
+  }
+}
+
+function openEditCustomRepeat() {
+  ecrpUnit='day'; ecrpNum=1; ecrpWds=[1];
+  ecrpRenderNums();
+  document.querySelectorAll('[data-eunit]').forEach(e=>e.classList.remove('active'));
+  document.querySelector('[data-eunit="day"]').classList.add('active');
+  document.getElementById('edit-crp-week-section').style.display='none';
+  document.getElementById('edit-custom-repeat-panel').classList.add('open');
+}
+
+function ecrpRenderNums() {
+  const max = ecrpUnit==='month'?12:ecrpUnit==='week'?12:30;
+  document.getElementById('edit-crp-nums').innerHTML =
+    Array.from({length:max},(_,i)=>i+1).map(n=>
+      `<div class="crp-num ${n===ecrpNum?'active':''}" onclick="ecrpSelectNum(${n},this)">${n}</div>`
+    ).join('');
+}
+
+function ecrpSelectUnit(unit, el) {
+  ecrpUnit=unit;
+  document.querySelectorAll('[data-eunit]').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('edit-crp-week-section').style.display = unit==='week'?'block':'none';
+  ecrpRenderNums();
+}
+
+function ecrpSelectNum(n, el) {
+  ecrpNum=n;
+  document.querySelectorAll('#edit-crp-nums .crp-num').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function ecrpToggleWd(el) {
+  const wd=parseInt(el.dataset.ewd);
+  if(ecrpWds.includes(wd)){ if(ecrpWds.length>1) ecrpWds=ecrpWds.filter(w=>w!==wd); }
+  else ecrpWds.push(wd);
+  el.classList.toggle('active', ecrpWds.includes(wd));
+}
+
+function cancelEditCustomRepeat() {
+  document.getElementById('edit-custom-repeat-panel').classList.remove('open');
+  document.getElementById('edit-repeat').value = 'none';
+  editCustomRepeatVal = '';
+  document.getElementById('edit-custom-repeat-display').style.display='none';
+}
+
+function confirmEditCustomRepeat() {
+  const unitMap={day:'天',week:'周',month:'月'};
+  let label;
+  if(ecrpUnit==='week' && ecrpWds.length>0){
+    const wdNames=['日','一','二','三','四','五','六'];
+    const wdStr=ecrpWds.sort().map(w=>'周'+wdNames[w]).join('、');
+    label = ecrpNum===1?`每周${wdStr}`:`每${ecrpNum}周${wdStr}`;
+    editCustomRepeatVal = `custom:week:${ecrpNum}:${ecrpWds.sort().join(',')}`;
+  } else {
+    label = ecrpNum===1?`每${unitMap[ecrpUnit]}`:`每${ecrpNum}${unitMap[ecrpUnit]}`;
+    editCustomRepeatVal = `custom:${ecrpUnit}:${ecrpNum}`;
+  }
+  document.getElementById('edit-custom-repeat-panel').classList.remove('open');
+  const disp = document.getElementById('edit-custom-repeat-display');
+  disp.textContent = '✓ ' + label;
+  disp.style.display = 'block';
+}
+
+// 加载 custom repeat 时反向解析并展示
+function loadEditCustomRepeat(repeatVal) {
+  if (!repeatVal || !repeatVal.startsWith('custom:')) return;
+  editCustomRepeatVal = repeatVal;
+  const label = getRepeatLabel(repeatVal);
+  const disp = document.getElementById('edit-custom-repeat-display');
+  disp.textContent = '✓ ' + label;
+  disp.style.display = 'block';
+  // 把 select 改成 custom
+  document.getElementById('edit-repeat').value = 'custom';
+}
+
 function saveEdit() {
   const t = tasks.find(t => t.id === editingTaskId); if (!t) return;
   const title = document.getElementById('edit-title').value.trim();
   if (title) t.title = title;
   t.body     = document.getElementById('edit-body').value;
   t.priority = document.getElementById('edit-prio').value;
-  t.repeat   = document.getElementById('edit-repeat').value;
+  const repVal = document.getElementById('edit-repeat').value;
+  t.repeat   = repVal === 'custom' ? (editCustomRepeatVal || 'none') : repVal;
   t.dt       = document.getElementById('edit-dt').value;
   t.dtEnd    = document.getElementById('edit-dt-end').value || '';
   t.listId   = document.getElementById('edit-list').value;
