@@ -86,10 +86,13 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .dt-popup label{font-size:11.5px;color:var(--t3);display:block;margin-bottom:5px;font-weight:500}
 .dt-popup input[type="date"]{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:var(--font);outline:none;color:var(--text);margin-bottom:10px}
 .dt-popup input[type="date"]:focus{border-color:#aaa}
-.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
-.time-chip{padding:5px 4px;border-radius:5px;border:1px solid var(--border);font-size:12px;text-align:center;cursor:pointer;color:var(--t2);transition:all .1s;background:transparent;font-family:var(--font)}
-.time-chip:hover{background:var(--sb-hover);border-color:#bbb;color:var(--text)}
-.time-chip.selected{background:var(--text);color:#fff;border-color:var(--text)}
+.time-scroller{display:flex;gap:8px;margin-bottom:10px;height:160px}
+.time-col{flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:6px;scroll-snap-type:y mandatory}
+.time-col::-webkit-scrollbar{width:0}
+.time-slot{height:40px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t2);cursor:pointer;scroll-snap-align:start;transition:all .1s;user-select:none}
+.time-slot:hover{background:var(--sb-hover);color:var(--text)}
+.time-slot.selected{background:var(--text);color:#fff;font-weight:500;border-radius:4px}
+.time-col-label{font-size:11px;color:var(--t3);text-align:center;margin-bottom:3px;font-weight:500}
 .dt-actions{display:flex;gap:6px;justify-content:flex-end}
 .dt-actions button{padding:5px 12px;border-radius:5px;border:none;font-size:12.5px;font-family:var(--font);cursor:pointer;font-weight:500}
 .dt-clear{background:var(--sb-hover);color:var(--t2)}
@@ -118,6 +121,24 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .repeat-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s}
 .repeat-opt:hover{background:var(--sb-hover)}
 .repeat-opt.selected{background:var(--sb-active)}
+
+.custom-repeat-panel{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;padding:14px 16px;display:none;min-width:260px}
+.custom-repeat-panel.open{display:block}
+.crp-label{font-size:11.5px;color:var(--t3);font-weight:500;margin-bottom:6px}
+.crp-unit-row{display:flex;gap:6px;margin-bottom:10px}
+.crp-unit-btn{flex:1;padding:6px 4px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;text-align:center;cursor:pointer;color:var(--t2);transition:all .1s;background:transparent;font-family:var(--font)}
+.crp-unit-btn:hover{border-color:#bbb;color:var(--text)}
+.crp-unit-btn.active{border-color:var(--text);background:var(--text);color:#fff}
+.crp-num-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.crp-num{width:28px;height:28px;border:1px solid var(--border);border-radius:5px;font-size:12px;text-align:center;line-height:28px;cursor:pointer;color:var(--t2);transition:all .1s}
+.crp-num:hover{border-color:#bbb;color:var(--text)}
+.crp-num.active{background:var(--text);color:#fff;border-color:var(--text)}
+.crp-week-row{display:flex;gap:4px;margin-bottom:10px}
+.crp-wd{width:30px;height:30px;border:1px solid var(--border);border-radius:50%;font-size:11.5px;text-align:center;line-height:30px;cursor:pointer;color:var(--t2);transition:all .1s}
+.crp-wd:hover{border-color:#bbb;color:var(--text)}
+.crp-wd.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.crp-actions{display:flex;gap:6px;justify-content:flex-end}
+.crp-actions button{padding:5px 12px;border-radius:5px;border:none;font-size:12.5px;font-family:var(--font);cursor:pointer;font-weight:500}
 
 .add-btn{margin:5px 6px 5px 4px;background:var(--text);color:#fff;border:none;border-radius:var(--r-sm);padding:7px 18px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
 .add-btn:hover{opacity:.8}
@@ -148,6 +169,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .t-body{flex:1;min-width:0}
 .t-title{font-size:14px;color:var(--text);line-height:1.55;word-break:break-word}
 .task-item.done-item .t-title{text-decoration:line-through;color:var(--t3)}
+.t-body-preview{font-size:12px;color:var(--t3);margin-top:2px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .t-title-input{font-size:14px;font-family:var(--font);border:none;outline:none;background:transparent;color:var(--text);width:100%;border-bottom:1.5px solid var(--accent);padding:1px 0}
 .t-meta{display:flex;gap:6px;margin-top:3px;align-items:center;flex-wrap:wrap}
 .tag{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:600;display:flex;align-items:center;gap:3px}
@@ -182,9 +204,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .modal textarea{resize:vertical;min-height:90px}
 .modal input[type="text"]:focus,.modal textarea:focus,.modal select:focus{border-color:#aaa}
 .icon-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:14px}
-.icon-opt{width:36px;height:36px;border-radius:6px;border:1.5px solid var(--border);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .1s;background:transparent}
-.icon-opt:hover{background:var(--sb-hover);border-color:#bbb}
-.icon-opt.selected{border-color:var(--accent);background:#e8f2fd}
+.icon-opt{width:32px;height:32px;border-radius:50% !important;border:3px solid transparent;cursor:pointer;transition:all .1s;transform:scale(0.85)}
+.icon-opt:hover{transform:scale(1)}
+.icon-opt.selected{transform:scale(1);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 .modal-actions button{padding:7px 16px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13.5px;font-family:var(--font);font-weight:500;transition:opacity .15s}
 .btn-cancel{background:var(--sb-hover);color:var(--t2)}
@@ -282,17 +304,17 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
             <span id="prio-label">优先级</span>
           </div>
           <div class="prio-dropdown" id="prio-dropdown">
-            <div class="prio-opt selected" data-val="none" onclick="selectPrio('none',this)">
-              <div class="prio-dot" style="background:#ccc"></div>常态
-            </div>
-            <div class="prio-opt" data-val="low" onclick="selectPrio('low',this)">
-              <div class="prio-dot" style="background:#16a34a"></div>普通
+            <div class="prio-opt" data-val="high" onclick="selectPrio('high',this)">
+              <div class="prio-dot" style="background:#e03e2d"></div>紧急
             </div>
             <div class="prio-opt" data-val="mid" onclick="selectPrio('mid',this)">
               <div class="prio-dot" style="background:#d97706"></div>重要
             </div>
-            <div class="prio-opt" data-val="high" onclick="selectPrio('high',this)">
-              <div class="prio-dot" style="background:#e03e2d"></div>紧急
+            <div class="prio-opt" data-val="low" onclick="selectPrio('low',this)">
+              <div class="prio-dot" style="background:#16a34a"></div>普通
+            </div>
+            <div class="prio-opt selected" data-val="none" onclick="selectPrio('none',this)">
+              <div class="prio-dot" style="background:#ccc"></div>常态
             </div>
           </div>
         </div>
@@ -308,7 +330,14 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
             <label>日期</label>
             <input type="date" id="dt-date-input" onchange="onDTDateChange()"/>
             <label>时间</label>
-            <div class="time-grid" id="time-grid"></div>
+            <div style="display:flex;gap:0;margin-bottom:2px">
+              <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">时</div>
+              <div style="flex:1;text-align:center;font-size:11px;color:var(--t3);font-weight:500">分</div>
+            </div>
+            <div class="time-scroller">
+              <div class="time-col" id="hour-col"></div>
+              <div class="time-col" id="min-col"></div>
+            </div>
             <div class="dt-actions">
               <button class="dt-clear" onclick="clearDT()">清除</button>
               <button class="dt-ok" onclick="confirmDT()">确定</button>
@@ -320,7 +349,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
         <!-- 清单 -->
         <div class="list-sel-wrap" id="list-sel-wrap">
           <div class="list-sel-trigger" id="list-sel-trigger" onclick="toggleListSel()">
-            <span class="ls-icon" id="ls-icon">📌</span>
+            <span class="ls-icon" id="ls-icon"></span>
             <span class="ls-name" id="ls-name">默认</span>
           </div>
           <div class="list-sel-dd" id="list-sel-dd"></div>
@@ -341,6 +370,32 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
             <div class="repeat-opt" data-val="monthly" onclick="selectRepeat('monthly',this)">每月</div>
             <div class="repeat-opt" data-val="yearly" onclick="selectRepeat('yearly',this)">每年</div>
             <div class="repeat-opt" data-val="custom" onclick="selectRepeat('custom',this)">自定义间隔…</div>
+          </div>
+          <div class="custom-repeat-panel" id="custom-repeat-panel">
+            <div class="crp-label">重复频率</div>
+            <div class="crp-unit-row">
+              <button class="crp-unit-btn active" data-unit="day" onclick="crpSelectUnit('day',this)">天</button>
+              <button class="crp-unit-btn" data-unit="week" onclick="crpSelectUnit('week',this)">周</button>
+              <button class="crp-unit-btn" data-unit="month" onclick="crpSelectUnit('month',this)">月</button>
+            </div>
+            <div class="crp-label">每隔</div>
+            <div class="crp-num-row" id="crp-nums"></div>
+            <div id="crp-week-section" style="display:none">
+              <div class="crp-label">星期</div>
+              <div class="crp-week-row">
+                <div class="crp-wd active" data-wd="1" onclick="crpToggleWd(this)">一</div>
+                <div class="crp-wd" data-wd="2" onclick="crpToggleWd(this)">二</div>
+                <div class="crp-wd" data-wd="3" onclick="crpToggleWd(this)">三</div>
+                <div class="crp-wd" data-wd="4" onclick="crpToggleWd(this)">四</div>
+                <div class="crp-wd" data-wd="5" onclick="crpToggleWd(this)">五</div>
+                <div class="crp-wd" data-wd="6" onclick="crpToggleWd(this)">六</div>
+                <div class="crp-wd" data-wd="0" onclick="crpToggleWd(this)">日</div>
+              </div>
+            </div>
+            <div class="crp-actions">
+              <button style="background:var(--sb-hover);color:var(--t2)" onclick="closeCustomRepeat()">取消</button>
+              <button style="background:var(--text);color:#fff" onclick="confirmCustomRepeat()">确定</button>
+            </div>
           </div>
         </div>
 
@@ -453,7 +508,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 // DATA
 // ══════════════════════════════════════
 let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
-let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","icon":"📌"},{"id":"work","name":"工作","icon":"💼"},{"id":"life","name":"生活","icon":"🏡"}]');
+let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","color":"#64748b"},{"id":"work","name":"工作","color":"#2383e2"},{"id":"life","name":"生活","color":"#16a34a"}]');
 let notes = JSON.parse(localStorage.getItem('td_notes')||'[]');
 
 let curView = 'today', curFilter = 'active';
@@ -465,7 +520,7 @@ let addDT = { date: '', hour: '', min: '' };
 let addListId = lists[0]?.id || 'default';
 let addRepeat = 'none';
 
-const LIST_ICONS = ['📌','💼','🏡','📚','🎯','💡','❤️','🎮','✈️','🍎','🎵','🏋️','💰','🛒','📝','🔬','🌿','⭐','🎨','🔧'];
+const LIST_COLORS = ['#e03e2d','#d97706','#16a34a','#2383e2','#8b5cf6','#ec4899','#06b6d4','#f59e0b','#10b981','#6366f1','#84cc16','#f97316','#14b8a6','#a855f7','#64748b','#334155'];
 
 const PRIO_CFG = {
   none: { label:'常态', color:'#ccc',     bg:'#f5f5f5', cls:'tag-none' },
@@ -571,18 +626,21 @@ function selectPrio(val, el) {
 // 日期时间弹窗
 // ══════════════════════════════════════
 function buildTimeGrid(selH, selM) {
-  const grid = document.getElementById('time-grid');
-  const times = [];
-  for (let h = 0; h < 24; h++) {
-    for (let m = 0; m < 60; m += 5) {
-      times.push({ h: p2(h), m: p2(m) });
-    }
-  }
-  // 只显示合理范围: 00:00~23:55，每5分一格
-  grid.innerHTML = times.map(t =>
-    `<div class="time-chip ${(t.h===selH&&t.m===selM)?'selected':''}"
-      onclick="selectTime('${t.h}','${t.m}',this)">${t.h}:${t.m}</div>`
+  const hCol = document.getElementById('hour-col');
+  const mCol = document.getElementById('min-col');
+  hCol.innerHTML = Array.from({length:24},(_,i)=>p2(i)).map(h=>
+    `<div class="time-slot ${h===selH?'selected':''}" onclick="selectTime('${h}',null,this)">${h}</div>`
   ).join('');
+  mCol.innerHTML = ['00','05','10','15','20','25','30','35','40','45','50','55'].map(m=>
+    `<div class="time-slot ${m===selM?'selected':''}" onclick="selectTime(null,'${m}',this)">${m}</div>`
+  ).join('');
+  // 滚动到选中
+  setTimeout(()=>{
+    const hs = hCol.querySelector('.selected');
+    const ms = mCol.querySelector('.selected');
+    if(hs) hCol.scrollTop = hs.offsetTop - 60;
+    if(ms) mCol.scrollTop = ms.offsetTop - 60;
+  }, 50);
 }
 function toggleDT() {
   closeAllDropdowns('dt-popup');
@@ -598,18 +656,18 @@ function toggleDT() {
   document.getElementById('dt-date-input').value = addDT.date;
   buildTimeGrid(addDT.hour, addDT.min);
   popup.classList.add('open');
-  // 滚到选中时间
-  setTimeout(() => {
-    const sel = popup.querySelector('.time-chip.selected');
-    if (sel) sel.scrollIntoView({ block:'nearest' });
-  }, 50);
 }
 function onDTDateChange() {
   addDT.date = document.getElementById('dt-date-input').value;
 }
 function selectTime(h, m, el) {
-  addDT.hour = h; addDT.min = m;
-  document.querySelectorAll('.time-chip').forEach(e => e.classList.remove('selected'));
+  if(h !== null) {
+    addDT.hour = h;
+    document.querySelectorAll('#hour-col .time-slot').forEach(e=>e.classList.remove('selected'));
+  } else {
+    addDT.min = m;
+    document.querySelectorAll('#min-col .time-slot').forEach(e=>e.classList.remove('selected'));
+  }
   el.classList.add('selected');
 }
 function clearDT() {
@@ -630,7 +688,7 @@ function buildListSelDD() {
   const dd = document.getElementById('list-sel-dd');
   dd.innerHTML = lists.map(l =>
     `<div class="list-sel-opt ${l.id===addListId?'selected':''}" onclick="selectList('${l.id}',this)">
-      <span>${l.icon}</span>${escHtml(l.name)}
+      <span style="display:flex;align-items:center">${listDot(l)}</span>${escHtml(l.name)}
     </div>`
   ).join('');
 }
@@ -643,7 +701,7 @@ function selectList(id, el) {
   addListId = id;
   const l = lists.find(l => l.id === id);
   if (l) {
-    document.getElementById('ls-icon').textContent = l.icon;
+    document.getElementById('ls-icon').innerHTML = listDot(l);
     document.getElementById('ls-name').textContent = l.name;
   }
   document.querySelectorAll('.list-sel-opt').forEach(e => e.classList.remove('selected'));
@@ -659,14 +717,15 @@ function toggleRepeat() {
   document.getElementById('repeat-dd').classList.toggle('open');
 }
 function selectRepeat(val, el) {
-  if (val === 'custom') {
-    const days = prompt('请输入间隔天数（如 3 表示每3天）：');
-    if (!days || isNaN(parseInt(days)) || parseInt(days) <= 0) return;
-    addRepeat = 'custom:' + parseInt(days);
-    document.querySelectorAll('#repeat-dd .repeat-opt').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-    document.getElementById('rpt-label').textContent = `每${parseInt(days)}天`;
+  if(val === 'custom') {
     document.getElementById('repeat-dd').classList.remove('open');
+    // 初始化面板
+    crpUnit = 'day'; crpNum = 1; crpWds = [1];
+    crpRenderNums();
+    document.querySelector('[data-unit="day"]').classList.add('active');
+    document.querySelectorAll('[data-unit]').forEach(e=>{ if(e.dataset.unit!=='day') e.classList.remove('active'); });
+    document.getElementById('crp-week-section').style.display = 'none';
+    document.getElementById('custom-repeat-panel').classList.add('open');
     return;
   }
   addRepeat = val;
@@ -676,11 +735,57 @@ function selectRepeat(val, el) {
   document.getElementById('repeat-dd').classList.remove('open');
 }
 
+let crpUnit='day', crpNum=1, crpWds=[1];
+function crpRenderNums(){
+  const max = crpUnit==='month'?12:crpUnit==='week'?12:30;
+  document.getElementById('crp-nums').innerHTML =
+    Array.from({length:max},(_,i)=>i+1).map(n=>
+      `<div class="crp-num ${n===crpNum?'active':''}" onclick="crpSelectNum(${n},this)">${n}</div>`
+    ).join('');
+}
+function crpSelectUnit(unit, el){
+  crpUnit=unit;
+  document.querySelectorAll('.crp-unit-btn').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('crp-week-section').style.display = unit==='week'?'block':'none';
+  crpRenderNums();
+}
+function crpSelectNum(n, el){
+  crpNum=n;
+  document.querySelectorAll('.crp-num').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+function crpToggleWd(el){
+  const wd=parseInt(el.dataset.wd);
+  if(crpWds.includes(wd)){ if(crpWds.length>1) crpWds=crpWds.filter(w=>w!==wd); }
+  else crpWds.push(wd);
+  el.classList.toggle('active', crpWds.includes(wd));
+}
+function closeCustomRepeat(){
+  document.getElementById('custom-repeat-panel').classList.remove('open');
+}
+function confirmCustomRepeat(){
+  const unitMap={day:'天',week:'周',month:'月'};
+  let label;
+  if(crpUnit==='week' && crpWds.length>0){
+    const wdNames=['日','一','二','三','四','五','六'];
+    const wdStr=crpWds.sort().map(w=>'周'+wdNames[w]).join('、');
+    label = crpNum===1 ? `每周${wdStr}` : `每${crpNum}周${wdStr}`;
+    addRepeat = `custom:week:${crpNum}:${crpWds.sort().join(',')}`;
+  } else {
+    label = crpNum===1 ? `每${unitMap[crpUnit]}` : `每${crpNum}${unitMap[crpUnit]}`;
+    addRepeat = `custom:${crpUnit}:${crpNum}`;
+  }
+  document.getElementById('rpt-label').textContent = label;
+  document.getElementById('custom-repeat-panel').classList.remove('open');
+}
+
 // 关闭所有下拉（排除当前）
 function closeAllDropdowns(except) {
   ['prio-dropdown','dt-popup','list-sel-dd','repeat-dd'].forEach(id => {
     if (id !== except) document.getElementById(id).classList.remove('open');
   });
+  document.getElementById('custom-repeat-panel')?.classList.remove('open');
 }
 document.addEventListener('click', e => {
   const wrappers = ['prio-wrapper','dt-wrapper','list-sel-wrap','repeat-wrap'];
@@ -736,6 +841,21 @@ function toggleTask(id) {
 function calcNextRepeat(dt, repeat) {
   const d = new Date(dt);
   if (isNaN(d.getTime())) return null;
+  if (repeat.startsWith('custom:')) {
+    const parts = repeat.split(':');
+    const unit = parts[1], num = parseInt(parts[2]);
+    if(unit==='day') { d.setDate(d.getDate()+num); }
+    else if(unit==='week') {
+      const wds = parts[3] ? parts[3].split(',').map(Number) : [1];
+      d.setDate(d.getDate()+1);
+      let count=0;
+      while(!wds.includes(d.getDay()) && count<14){ d.setDate(d.getDate()+1); count++; }
+    }
+    else if(unit==='month') { d.setMonth(d.getMonth()+num); }
+    const hasTime = dt.includes('T');
+    if(hasTime) return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  }
   switch (repeat) {
     case 'daily':   d.setDate(d.getDate() + 1); break;
     case 'weekday': {
@@ -746,15 +866,7 @@ function calcNextRepeat(dt, repeat) {
     case 'weekly':  d.setDate(d.getDate() + 7); break;
     case 'monthly': d.setMonth(d.getMonth() + 1); break;
     case 'yearly':  d.setFullYear(d.getFullYear() + 1); break;
-    default: {
-      if (repeat.startsWith('custom:')) {
-        const days = parseInt(repeat.slice(7));
-        if (days > 0) d.setDate(d.getDate() + days);
-        else return null;
-      } else {
-        return null;
-      }
-    }
+    default: return null;
   }
   const hasTime = dt.includes('T');
   if (hasTime) {
@@ -775,7 +887,7 @@ function openEditModal(id) {
   document.getElementById('edit-dt').value = t.dt || '';
   // 填充清单选项
   const sel = document.getElementById('edit-list');
-  sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${l.icon} ${escHtml(l.name)}</option>`).join('');
+  sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${escHtml(l.name)}</option>`).join('');
   document.getElementById('edit-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('edit-title').focus(), 50);
 }
@@ -824,13 +936,29 @@ function getVisible() {
 // ══════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════
+function getRepeatLabel(repeat) {
+  if(!repeat || repeat==='none') return '';
+  if(repeat.startsWith('custom:')) {
+    const parts = repeat.split(':');
+    const unit=parts[1], num=parseInt(parts[2]);
+    const unitMap={day:'天',week:'周',month:'月'};
+    if(unit==='week' && parts[3]) {
+      const wdNames=['日','一','二','三','四','五','六'];
+      const wdStr=parts[3].split(',').map(w=>'周'+wdNames[parseInt(w)]).join('、');
+      return num===1?`每周${wdStr}`:`每${num}周${wdStr}`;
+    }
+    return num===1?`每${unitMap[unit]||unit}`:`每${num}${unitMap[unit]||unit}`;
+  }
+  return REPEAT_LABELS[repeat]||repeat;
+}
+
 function render() { renderSidebar(); renderTasks(); updateHeader(); }
 
 function updateHeader() {
   const listObj = lists.find(l => `list:${l.id}` === curView);
   const titles = { today:'今天', all:'全部任务', done:'已完成' };
   document.getElementById('view-title').textContent = listObj
-    ? `${listObj.icon} ${listObj.name}`
+    ? listObj.name
     : (titles[curView] || curView);
   const d = new Date();
   const days = ['周日','周一','周二','周三','周四','周五','周六'];
@@ -841,7 +969,7 @@ function updateHeader() {
   // 同步清单选择器显示
   const cur = lists.find(l => l.id === addListId) || lists[0];
   if (cur) {
-    document.getElementById('ls-icon').textContent = cur.icon;
+    document.getElementById('ls-icon').innerHTML = listDot(cur);
     document.getElementById('ls-name').textContent = cur.name;
   }
 }
@@ -861,7 +989,7 @@ function renderSidebar() {
     const cnt = tasks.filter(t => t.listId === l.id && !t.done).length;
     const isAct = curView === `list:${l.id}`;
     return `<div class="sb-list-item ${isAct?'active':''}" onclick="switchViewList('${l.id}',this)">
-      <span class="li-icon">${l.icon}</span>
+      <span class="li-icon" style="display:flex;align-items:center;justify-content:center">${listDot(l)}</span>
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.name)}</span>
       ${cnt ? `<span class="li-cnt">${cnt}</span>` : ''}
       <button class="li-edit-btn" onclick="event.stopPropagation();showListModal('${l.id}')" title="编辑清单">✏️</button>
@@ -886,16 +1014,14 @@ function renderTasks() {
     const dTag = dtStr
       ? `<span class="tag-date ${ov?'overdue':''}">📅 ${escHtml(dtStr)}${ov?' · 逾期':''}</span>` : '';
     const lObj = listMap[t.listId];
-    const lTag = lObj ? `<span class="tag-list">${lObj.icon} ${escHtml(lObj.name)}</span>` : '';
-    const rLabel = t.repeat && t.repeat.startsWith('custom:')
-      ? `每${t.repeat.slice(7)}天`
-      : (REPEAT_LABELS[t.repeat] || t.repeat);
-    const rTag = (t.repeat && t.repeat !== 'none')
-      ? `<span class="tag-repeat">🔁 ${rLabel}</span>` : '';
+    const lTag = lObj ? `<span class="tag-list">${listDot(lObj)} ${escHtml(lObj.name)}</span>` : '';
+    const rLabel = getRepeatLabel(t.repeat);
+    const rTag = rLabel ? `<span class="tag-repeat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> ${rLabel}</span>` : '';
     return `<div class="task-item ${t.done?'done-item':''}" id="task-${t.id}">
       <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
       <div class="t-body">
         <div class="t-title">${escHtml(t.title)}</div>
+        ${t.body ? `<div class="t-body-preview">${escHtml(t.body)}</div>` : ''}
         <div class="t-meta">${pTag}${dTag}${rTag}${lTag}</div>
       </div>
       <div class="t-actions">
@@ -955,7 +1081,7 @@ function showListModal(id) {
   document.getElementById('list-modal-title').textContent = l ? '编辑清单' : '新建清单';
   document.getElementById('list-name-input').value = l ? l.name : '';
   document.getElementById('list-delete-btn').style.display = l ? 'block' : 'none';
-  renderIconGrid(l ? l.icon : '📌');
+  renderIconGrid(l ? (l.color||'#64748b') : '#2383e2');
   document.getElementById('list-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('list-name-input').focus(), 50);
 }
@@ -963,28 +1089,34 @@ function hideListModal() {
   document.getElementById('list-modal').style.display = 'none';
   editingListId = null;
 }
-function renderIconGrid(selected) {
-  document.getElementById('icon-grid').innerHTML = LIST_ICONS.map(ic =>
-    `<div class="icon-opt ${ic===selected?'selected':''}" onclick="selectIcon(this,'${ic}')">${ic}</div>`
+function listDot(list) {
+  const color = list.color || '#64748b';
+  return `<span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>`;
+}
+function renderIconGrid(selectedColor) {
+  document.getElementById('icon-grid').innerHTML = LIST_COLORS.map(c=>
+    `<div class="icon-opt ${c===selectedColor?'selected':''}" onclick="selectIcon(this,'${c}')" style="background:${c};border-color:${c};border-radius:50%"></div>`
   ).join('');
 }
-function selectIcon(el) {
+function selectIcon(el, color) {
   document.querySelectorAll('.icon-opt').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
+  el._color = color;
 }
-function getSelectedIcon() {
-  return document.querySelector('.icon-opt.selected')?.textContent || '📌';
+function getSelectedColor() {
+  const el = document.querySelector('.icon-opt.selected');
+  return el?._color || el?.style.background || '#64748b';
 }
 function confirmList() {
   const name = document.getElementById('list-name-input').value.trim();
   if (!name) { hideListModal(); return; }
-  const icon = getSelectedIcon();
+  const color = getSelectedColor();
   if (editingListId) {
     const l = lists.find(l => l.id === editingListId);
-    if (l) { l.name = name; l.icon = icon; }
+    if (l) { l.name = name; l.color = color; }
   } else {
     const newId = 'list_' + Date.now();
-    lists.push({ id: newId, name, icon });
+    lists.push({ id: newId, name, color });
     // 切换到新建的清单
     addListId = newId;
   }
@@ -1069,6 +1201,12 @@ document.getElementById('edit-modal').addEventListener('click',  function(e) { i
 // ══════════════════════════════════════
 // 确保 addListId 有效
 if (!lists.find(l => l.id === addListId)) addListId = lists[0]?.id || 'default';
+// 初始化清单图标显示
+const initList = lists.find(l=>l.id===addListId)||lists[0];
+if(initList) {
+  document.getElementById('ls-icon').innerHTML = listDot(initList);
+  document.getElementById('ls-name').textContent = initList.name;
+}
 render();
 </script>
 </body>
