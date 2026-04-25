@@ -986,8 +986,7 @@ function renderGoalsView() {
   const [yr, mo] = goalsViewYM.split('-').map(Number);
   const monthLabel = `${yr} 年 ${mo} 月`;
 
-  let html = `<div class="view-meta">${formatViewDate()}</div>`;
-  html += `<h1 class="view-title">目标管理</h1>`;
+  let html = `<h1 class="view-title">目标管理</h1>`;
 
   // 月份导航
   html += `<div class="goals-nav">
@@ -1048,8 +1047,9 @@ function renderGoalsView() {
         onblur="saveCatDesc('${col}','${escHtml(cat)}',this)"
         oninput="autoResizeCatDesc(this)"
       >${escHtml(catDesc)}</textarea>`;
-      // 目标条目
-      items.forEach(g => {
+      // 目标条目（已完成沉底）
+      const sortedItems = [...items].sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0));
+      sortedItems.forEach(g => {
         html += `<div class="goals-ng-item ${g.done?'done':''} ${g.warn?'warned':''}">
           <div class="goals-ng-check ${g.done?'checked':''}" onclick="toggleGoalNG('${col}','${escHtml(cat)}','${g.id}')"></div>
           <div class="goals-ng-text" contenteditable="true"
