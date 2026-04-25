@@ -2083,11 +2083,13 @@ function renderWeekView() {
   </div>`;
 
   const HOUR_H = 48; // px per hour
-  const COL_TOTAL_H = HOUR_H * 24; // 1152px
+  const WEEK_START_H = 7; // 从7点开始显示
+  const WEEK_HOURS = 24 - WEEK_START_H; // 17小时
+  const COL_TOTAL_H = HOUR_H * WEEK_HOURS;
 
   // 生成时间轴 HTML
   let timeAxisHtml = '<div class="wt-time-axis">';
-  for(let h = 0; h < 24; h++) {
+  for(let h = WEEK_START_H; h < 24; h++) {
     timeAxisHtml += `<div class="wt-time-slot">${p2(h)}:00</div>`;
   }
   timeAxisHtml += '</div>';
@@ -2110,14 +2112,14 @@ function renderWeekView() {
     let colHtml = `<div class="wt-col" style="height:${COL_TOTAL_H}px">`;
 
     // 每小时分隔线
-    for(let h = 0; h < 24; h++) {
+    for(let h = 0; h < WEEK_HOURS; h++) {
       colHtml += `<div class="wt-hour-line" style="top:${h*HOUR_H}px"></div>`;
     }
 
     // 当前时间线（今天）
     if(isToday) {
       const now2 = new Date();
-      const nowMin = now2.getHours()*60 + now2.getMinutes();
+      const nowMin = now2.getHours()*60 + now2.getMinutes() - WEEK_START_H*60;
       const nowTop = nowMin * HOUR_H / 60;
       colHtml += `<div class="wt-now-line" style="top:${nowTop}px"><div class="wt-now-dot"></div></div>`;
     }
@@ -2128,7 +2130,7 @@ function renderWeekView() {
       let topPx, heightPx, timeLabel='';
       if(hasTime) {
         const dtObj = new Date(t.dt);
-        const startMin = dtObj.getHours()*60 + dtObj.getMinutes();
+        const startMin = dtObj.getHours()*60 + dtObj.getMinutes() - WEEK_START_H*60;
         topPx = startMin * HOUR_H / 60;
         let endMin;
         if(t.dtEnd && t.dtEnd.includes('T')) {
