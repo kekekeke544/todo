@@ -399,6 +399,33 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sp-ctx-item{padding:7px 14px;font-size:13px;font-family:var(--font);color:var(--text);cursor:pointer;white-space:nowrap}
 .sp-ctx-item:hover{background:var(--hover)}
 .sp-ctx-sep{height:1px;background:var(--border);margin:3px 0}
+
+/* 目标双列布局 */
+.goals-ng-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:16px 0 40px}
+.goals-ng-col{display:flex;flex-direction:column;gap:12px}
+.goals-ng-col-hd{font-size:15px;font-weight:700;color:var(--text);padding-bottom:8px;border-bottom:2px solid var(--text)}
+.goals-ng-cat{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.goals-ng-cat-hd{display:flex;align-items:center;gap:6px;padding:10px 14px 8px;background:var(--hover)}
+.goals-ng-cat-name{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.goals-ng-cat-prog{font-size:11px;color:var(--t3)}
+.goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:0 4px;display:none}
+.goals-ng-cat-hd:hover .goals-ng-cat-del{display:block}
+.goals-ng-item{display:flex;align-items:center;gap:8px;padding:6px 14px;border-top:1px solid var(--border);transition:background .1s}
+.goals-ng-item:hover{background:var(--hover)}
+.goals-ng-item.done .goals-ng-text{text-decoration:line-through;color:var(--t3)}
+.goals-ng-check{width:14px;height:14px;border:1.5px solid var(--border);border-radius:3px;cursor:pointer;flex-shrink:0;transition:all .1s}
+.goals-ng-check.checked{background:var(--text);border-color:var(--text);position:relative}
+.goals-ng-check.checked:after{content:'✓';position:absolute;top:-2px;left:1px;font-size:10px;color:#fff;font-weight:700}
+.goals-ng-text{flex:1;font-size:13px;color:var(--text);outline:none;min-width:0;word-break:break-word}
+.goals-ng-del{background:none;border:none;cursor:pointer;color:var(--t3);font-size:13px;padding:0 2px;display:none}
+.goals-ng-item:hover .goals-ng-del{display:block}
+.goals-ng-add-row{padding:6px 14px;border-top:1px solid var(--border)}
+.goals-ng-add-inp{width:100%;border:none;outline:none;font-size:12px;font-family:var(--font);color:var(--text);background:transparent}
+.goals-ng-add-inp::placeholder{color:var(--t3)}
+.goals-ng-new-cat{padding:4px 0}
+.goals-ng-new-cat-inp{width:100%;border:none;border-bottom:1px dashed var(--border);outline:none;font-size:12px;font-family:var(--font);color:var(--text);background:transparent;padding:6px 2px}
+.goals-ng-new-cat-inp::placeholder{color:var(--t3)}
+.goals-ng-new-cat-inp:focus{border-bottom-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -804,6 +831,9 @@ let goals = JSON.parse(localStorage.getItem('td_goals') || '[]');
 let goalsOpen = localStorage.getItem('td_goals_open') !== 'false';
 let goalsV2 = JSON.parse(localStorage.getItem('td_goalsv2') || '{}');
 let openMonths = JSON.parse(localStorage.getItem('td_goalmonths') || '{}');
+// td_goals_ng = { team: { [catName]: [{id,text,done}] }, personal: { [catName]: [{id,text,done}] } }
+let goalsNG = JSON.parse(localStorage.getItem('td_goals_ng') || 'null') || { team: {}, personal: {} };
+function saveGoalsNG() { localStorage.setItem('td_goals_ng', JSON.stringify(goalsNG)); }
 let dragSrcId = null;
 
 let curView = 'today', curFilter = 'active';
@@ -922,78 +952,105 @@ function saveGoalsV2() {
 
 function renderGoalsView() {
   const main = document.getElementById('goals-view-panel');
-  const now = new Date();
-  const curYM = `${now.getFullYear()}-${p2(now.getMonth()+1)}`;
-
-  // 确保当前月份存在
-  if (!goalsV2[curYM]) { goalsV2[curYM] = []; saveGoalsV2(); }
-  // 默认展开当前月
-  if (openMonths[curYM] === undefined) { openMonths[curYM] = true; localStorage.setItem('td_goalmonths', JSON.stringify(openMonths)); }
-
-  // 按年分组，月份降序
-  const allYMs = Object.keys(goalsV2).sort().reverse();
-  const byYear = {};
-  allYMs.forEach(ym => {
-    const yr = ym.split('-')[0];
-    if (!byYear[yr]) byYear[yr] = [];
-    byYear[yr].push(ym);
-  });
-
-  const monthNames = ['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-
   const d0 = new Date();
-  const mottoText = MOTTOS[d0.getDate() % MOTTOS.length];
+
   let html = `<div class="view-meta">${formatViewDate()}</div>`;
   html += `<h1 class="view-title">目标管理</h1>`;
-  html += `<div class="motto">${mottoText}</div>`;
-  html += `<div class="goals-view">`;
+  html += `<div class="goals-ng-wrap">`;
 
-  // 新建月份
-  html += `<div class="goals-new-month">
-    <select id="new-goal-year">${[now.getFullYear(), now.getFullYear()-1].map(y=>`<option>${y}</option>`).join('')}</select>
-    <select id="new-goal-month">${Array.from({length:12},(_,i)=>`<option value="${p2(i+1)}">${i+1}月</option>`).join('')}</select>
-    <button onclick="addGoalMonth()">+ 新建月份</button>
-  </div>`;
+  ['team','personal'].forEach(col => {
+    const label = col === 'team' ? '🏢 团队目标' : '👤 个人目标';
+    const data = goalsNG[col]; // { catName: [{id,text,done}] }
+    const cats = Object.keys(data);
 
-  Object.keys(byYear).sort().reverse().forEach(yr => {
-    html += `<div class="goals-yr-hd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${yr} 年</div>`;
-    byYear[yr].forEach(ym => {
-      const items = goalsV2[ym] || [];
-      const done = items.filter(g=>g.done).length;
-      const total = items.length;
-      const pct = total ? Math.round(done/total*100) : 0;
-      const mNum = parseInt(ym.split('-')[1]);
-      const isOpen = openMonths[ym] !== false;
-      html += `<div class="goals-month-block">
-        <div class="goals-month-hd" onclick="toggleGoalMonth('${ym}')">
-          <span class="goals-month-title">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            ${mNum}月目标
-          </span>
-          <span class="goals-month-prog">
-            ${done}/${total}
-            <div class="goals-prog-bar"><div class="goals-prog-fill" style="width:${pct}%"></div></div>
-            <span style="font-size:10px">${isOpen?'▲':'▼'}</span>
-          </span>
-        </div>
-        <div class="goals-month-body ${isOpen?'open':''}">
-          ${renderGoalItemsWithCategory(items, ym)}
-          <div class="goal-add-bar">
-            <input class="goal-add-inp" id="gadd-${ym}" placeholder="添加目标…" onkeydown="if(event.key==='Enter')addGoalItem('${ym}')"/>
-            <select class="goal-cat-sel" id="gcat-${ym}" title="分类">
-              <option value="">无分类</option>
-              ${[...new Set((goalsV2[ym]||[]).map(g=>g.category).filter(Boolean))].map(c=>`<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('')}
-              <option value="__new__">＋ 新分类…</option>
-            </select>
-            <button class="goal-add-sub" onclick="addGoalItem('${ym}')">添加</button>
-          </div>
-        </div>
+    html += `<div class="goals-ng-col">`;
+    html += `<div class="goals-ng-col-hd">${label}</div>`;
+
+    // 渲染每个分类
+    cats.forEach(cat => {
+      const items = data[cat] || [];
+      const done = items.filter(x=>x.done).length;
+      html += `<div class="goals-ng-cat">`;
+      html += `<div class="goals-ng-cat-hd">
+        <span class="goals-ng-cat-name">${escHtml(cat)}</span>
+        <span class="goals-ng-cat-prog">${done}/${items.length}</span>
+        <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">×</button>
       </div>`;
+      items.forEach(g => {
+        html += `<div class="goals-ng-item ${g.done?'done':''}">
+          <div class="goals-ng-check ${g.done?'checked':''}" onclick="toggleGoalNG('${col}','${escHtml(cat)}','${g.id}')"></div>
+          <div class="goals-ng-text" contenteditable="true"
+            onblur="saveGoalNGText('${col}','${escHtml(cat)}','${g.id}',this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${escHtml(g.text)}</div>
+          <button class="goals-ng-del" onclick="deleteGoalNG('${col}','${escHtml(cat)}','${g.id}')">×</button>
+        </div>`;
+      });
+      // 添加目标输入行
+      html += `<div class="goals-ng-add-row">
+        <input class="goals-ng-add-inp" placeholder="+ 添加目标…"
+          onkeydown="if(event.key==='Enter')addGoalNG('${col}','${escHtml(cat)}',this)"/>
+      </div>`;
+      html += `</div>`; // .goals-ng-cat
     });
+
+    // 添加新分类
+    html += `<div class="goals-ng-new-cat">
+      <input class="goals-ng-new-cat-inp" placeholder="+ 新建分类…"
+        onkeydown="if(event.key==='Enter')addGoalCat('${col}',this)"/>
+    </div>`;
+
+    html += `</div>`; // .goals-ng-col
   });
 
-  html += `</div>`;
+  html += `</div>`; // .goals-ng-wrap
   main.innerHTML = html;
+}
+
+function addGoalCat(col, inputEl) {
+  const name = inputEl.value.trim();
+  if (!name) return;
+  if (!goalsNG[col][name]) {
+    goalsNG[col][name] = [];
+    saveGoalsNG();
+    renderGoalsView();
+  }
+  inputEl.value = '';
+}
+
+function deleteGoalCat(col, cat) {
+  if (!confirm(`删除分类「${cat}」及其下所有目标？`)) return;
+  delete goalsNG[col][cat];
+  saveGoalsNG();
+  renderGoalsView();
+}
+
+function addGoalNG(col, cat, inputEl) {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  if (!goalsNG[col][cat]) goalsNG[col][cat] = [];
+  goalsNG[col][cat].push({ id: Date.now() + Math.random(), text, done: false });
+  saveGoalsNG();
+  renderGoalsView();
+}
+
+function toggleGoalNG(col, cat, id) {
+  const arr = goalsNG[col][cat] || [];
+  const g = arr.find(x => String(x.id) == String(id));
+  if (g) { g.done = !g.done; saveGoalsNG(); renderGoalsView(); }
+}
+
+function saveGoalNGText(col, cat, id, el) {
+  const arr = goalsNG[col][cat] || [];
+  const g = arr.find(x => String(x.id) == String(id));
+  if (g) { g.text = el.innerText.trim(); saveGoalsNG(); }
+}
+
+function deleteGoalNG(col, cat, id) {
+  if (!goalsNG[col][cat]) return;
+  goalsNG[col][cat] = goalsNG[col][cat].filter(x => String(x.id) != String(id));
+  saveGoalsNG();
+  renderGoalsView();
 }
 
 function renderGoalItemsWithCategory(items, ym) {
