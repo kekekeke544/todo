@@ -1814,7 +1814,7 @@ function renderSidebar() {
     el.textContent = n || '';
     el.classList.toggle('visible', n > 0);
   };
-  setCnt('cnt-today', tc); setCnt('cnt-all', ac); setCnt('cnt-done', dc); setCnt('cnt-notes', nc);
+  setCnt('cnt-today', tc); setCnt('cnt-all', ac); setCnt('cnt-notes', nc);
   // 本周计数
   const nowW = new Date();
   const dowW = nowW.getDay();
