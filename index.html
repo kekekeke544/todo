@@ -184,7 +184,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .tag-list{font-size:11.5px;color:var(--t3)}
 .tag-repeat{font-size:11px;color:#8b5cf6;background:#f5f3ff;padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:2px}
 
-.t-actions{display:flex;gap:2px;flex-shrink:0;margin-top:1px}
+.t-title-row{display:flex;align-items:center;gap:4px;min-width:0}
+.t-title-row .t-title{flex:1;min-width:0}
+.t-actions{display:flex;gap:1px;flex-shrink:0;opacity:0;transition:opacity .12s}
+.task-item:hover .t-actions{opacity:1}
 .t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
 .t-btn:hover{color:var(--text);background:var(--sb-active)}
 .t-btn.del:hover{color:var(--high);background:var(--high-bg)}
@@ -559,6 +562,8 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
     <h2>编辑任务</h2>
     <label>任务名称</label>
     <input type="text" id="edit-title" placeholder="任务名称" onkeydown="if(event.key==='Enter')saveEdit()"/>
+    <label>所属清单</label>
+    <select id="edit-list" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);cursor:pointer;outline:none"></select>
     <label>内容备注</label>
     <textarea id="edit-body" placeholder="详细描述、备注…"></textarea>
     <div class="edit-row">
@@ -583,19 +588,11 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
         </select>
       </div>
     </div>
-    <div class="edit-row">
-      <div>
-        <label>日期时间</label>
-        <div style="display:flex;align-items:center">
-        <input type="datetime-local" id="edit-dt" step="300" style="flex:1" oninput="syncEndTime(this)"/>
-        <span style="margin:0 6px;color:var(--t3);font-size:12px">至</span>
-        <input type="datetime-local" id="edit-dt-end" step="300" style="flex:1"/>
-        </div>
-      </div>
-      <div>
-        <label>所属清单</label>
-        <select id="edit-list"></select>
-      </div>
+    <label>日期时间</label>
+    <div style="display:flex;align-items:center;gap:0">
+      <input type="datetime-local" id="edit-dt" step="300" style="flex:1" oninput="syncEndTime(this)"/>
+      <span style="margin:0 8px;color:var(--t3);font-size:12px;white-space:nowrap">至</span>
+      <input type="datetime-local" id="edit-dt-end" step="300" style="flex:1"/>
     </div>
     <div class="modal-actions" style="margin-top:6px">
       <button class="btn-cancel" onclick="hideEditModal()">取消</button>
@@ -853,10 +850,14 @@ function deleteGoalItem(ym, id) {
 }
 
 // ── App 名称编辑 ──
-// 开始时间变化时自动同步结束时间（仅当结束时间为空时）
+// 开始时间变化时自动同步结束时间为开始+30分钟
 function syncEndTime(startEl) {
   const endEl = document.getElementById('edit-dt-end');
-  if (!endEl.value) endEl.value = startEl.value;
+  if (!startEl.value) return;
+  const d = new Date(startEl.value);
+  d.setMinutes(d.getMinutes() + 30);
+  const pad = n => String(n).padStart(2,'0');
+  endEl.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function editAppName() {
@@ -1234,7 +1235,16 @@ function openEditModal(id) {
   document.getElementById('edit-prio').value = t.priority || 'none';
   document.getElementById('edit-repeat').value = t.repeat || 'none';
   document.getElementById('edit-dt').value = t.dt || '';
-  document.getElementById('edit-dt-end').value = t.dtEnd || t.dt || '';
+  // 结束时间：已有 dtEnd 用 dtEnd，否则开始时间+30分钟
+  if (t.dtEnd) {
+    document.getElementById('edit-dt-end').value = t.dtEnd;
+  } else if (t.dt) {
+    const d = new Date(t.dt); d.setMinutes(d.getMinutes()+30);
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('edit-dt-end').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } else {
+    document.getElementById('edit-dt-end').value = '';
+  }
   // 填充清单选项
   const sel = document.getElementById('edit-list');
   sel.innerHTML = lists.map(l => `<option value="${l.id}" ${l.id===t.listId?'selected':''}>${escHtml(l.name)}</option>`).join('');
@@ -1481,17 +1491,19 @@ function renderTasks() {
     return `<div class="task-item ${t.done?'done-item':''}" draggable="true" data-id="${t.id}" id="task-${t.id}">
       <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
       <div class="t-body">
-        <div class="t-title">${linkify(t.title)}</div>
+        <div class="t-title-row">
+          <div class="t-title">${linkify(t.title)}</div>
+          <div class="t-actions">
+            <button class="t-act-btn" onclick="showEditModal('${t.id}')" title="编辑">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="t-act-btn t-act-del" onclick="deleteTask('${t.id}')" title="删除">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+          </div>
+        </div>
         ${t.body ? `<div class="t-body-preview">${linkify(t.body)}</div>` : ''}
         <div class="t-meta">${pTag}${dTag}${rTag}${lTag}</div>
-      </div>
-      <div class="t-actions">
-        <button class="t-act-btn" onclick="showEditModal('${t.id}')" title="编辑">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="t-act-btn t-act-del" onclick="deleteTask('${t.id}')" title="删除">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>
       </div>
     </div>`;
   }).join('');
