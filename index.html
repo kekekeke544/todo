@@ -446,8 +446,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-ng-cat-hd{display:flex;align-items:center;gap:6px;padding:0 0 6px;border-bottom:1px solid var(--border);margin-bottom:2px}
 .goals-ng-cat-name{font-size:13px;font-weight:700;color:var(--text);flex:1;outline:none;cursor:text}
 .goals-ng-cat-stat{font-size:11px;color:var(--t3);flex-shrink:0}
-.goals-ng-cat-del{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
-.goals-ng-cat-hd:hover .goals-ng-cat-del{display:inline-flex}
+.goals-ng-cat-del,.goals-ng-cat-mv{background:none;border:none;cursor:pointer;color:var(--t3);padding:2px;display:none;line-height:1}
+.goals-ng-cat-hd:hover .goals-ng-cat-del,.goals-ng-cat-hd:hover .goals-ng-cat-mv{display:inline-flex}
+.goals-ng-cat-mv:hover{color:var(--text)}
 .goals-ng-col-desc{width:100%;box-sizing:border-box;border:none;border-bottom:1px dashed var(--border);outline:none;resize:none;font-family:var(--font);font-size:12.5px;color:var(--t2);background:transparent;line-height:1.6;padding:6px 0 8px;min-height:22px;overflow:hidden;margin-bottom:14px}
 .goals-ng-col-desc::placeholder{color:var(--t3)}
 .goals-ng-col-desc:focus{border-bottom-color:var(--accent)}
@@ -1063,6 +1064,12 @@ function renderGoalsView() {
         >${escHtml(cat)}</div>
         <span class="goals-ng-cat-stat">${catDone}/${items.length}</span>
         <button class="goals-ng-cat-add-btn" onclick="openGoalAddRow('${catId}')" title="添加目标">+</button>
+        <button class="goals-ng-cat-mv" onclick="moveGoalCat('${col}','${escHtml(cat)}',-1)" title="上移">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="goals-ng-cat-mv" onclick="moveGoalCat('${col}','${escHtml(cat)}',1)" title="下移">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
         <button class="goals-ng-cat-del" onclick="deleteGoalCat('${col}','${escHtml(cat)}')" title="删除分类">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1176,6 +1183,18 @@ function toggleGoalWarn(col, cat, id) {
   const arr = (data[col][cat] || []);
   const g = arr.find(x => x.id == id);
   if (g) { g.warn = !g.warn; saveGoalsNG(); renderGoalsView(); }
+}
+
+function moveGoalCat(col, cat, dir) {
+  const data = getGoalsMonth(goalsViewYM);
+  const order = _getCatOrder(col, data);
+  const i = order.indexOf(cat);
+  if (i < 0) return;
+  const j = i + dir;
+  if (j < 0 || j >= order.length) return;
+  [order[i], order[j]] = [order[j], order[i]];
+  saveGoalsNG();
+  renderGoalsView();
 }
 
 function _getCatOrder(col, data) {
