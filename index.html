@@ -2938,8 +2938,7 @@ if (tasks.length === 0) {
   const td = todayStr();
   const mkId = (n) => parseInt(Date.now()) + n;
   tasks = [
-    { id: mkId(1), title: '早咖学习', body: '09:30-09:45，每天15分钟学习新知识', done: false, priority: 'low', dt: td+'T09:30', listId: 'default', repeat: 'daily', createdAt: td },
-    { id: mkId(2), title: 'AI 探索半小时', body: '探索一个 AI 工具或场景，记录心得', done: false, priority: 'low', dt: td+'T10:00', listId: 'work', repeat: 'daily', createdAt: td },
+    { id: mkId(1), title: '添加你的第一条任务', body: '点击上方输入框开始添加任务', done: false, priority: 'low', dt: td+'T09:00', listId: 'default', repeat: 'none', createdAt: td },
   ];
   save();
 }
