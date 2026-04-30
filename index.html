@@ -902,6 +902,29 @@ const PRIO_CFG = {
 };
 const REPEAT_LABELS = { none:'不重复', daily:'每天', weekday:'每个工作日', weekly:'每周', monthly:'每月', yearly:'每年' };
 
+// 2026年法定节假日（国务院发布）— 这些日期放假，即使是工作日
+const CN_HOLIDAYS_2026 = new Set([
+  '2026-01-01','2026-01-02','2026-01-03',
+  '2026-02-15','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-21','2026-02-22','2026-02-23',
+  '2026-04-04','2026-04-05','2026-04-06',
+  '2026-05-01','2026-05-02','2026-05-03','2026-05-04','2026-05-05',
+  '2026-06-19','2026-06-20','2026-06-21',
+  '2026-09-25','2026-09-26','2026-09-27',
+  '2026-10-01','2026-10-02','2026-10-03','2026-10-04','2026-10-05','2026-10-06','2026-10-07'
+]);
+// 2026年补班日（周末但需上班）
+const CN_WORKDAYS_2026 = new Set([
+  '2026-01-04','2026-02-14','2026-02-28','2026-05-09','2026-09-20','2026-10-10'
+]);
+// 判断某天是否为"工作日"（考虑法定节假日和补班）
+function isCnWorkday(d) {
+  const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  if (CN_HOLIDAYS_2026.has(ds)) return false; // 法定假日 → 非工作日
+  if (CN_WORKDAYS_2026.has(ds)) return true;  // 补班日 → 工作日
+  const day = d.getDay();
+  return day !== 0 && day !== 6; // 普通周一~周五
+}
+
 const MOTTOS = [
   '今天也是元气满满的打工人！☀️',
   '工资是甲方给的，快乐是自己找的 🌈',
@@ -2140,7 +2163,7 @@ function calcNextRepeat(dt, repeat) {
     case 'daily':   d.setDate(d.getDate() + 1); break;
     case 'weekday': {
       d.setDate(d.getDate() + 1);
-      while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+      while (!isCnWorkday(d)) d.setDate(d.getDate() + 1);
       break;
     }
     case 'weekly':  d.setDate(d.getDate() + 7); break;
@@ -2318,7 +2341,29 @@ function saveEdit() {
 // ══════════════════════════════════════
 // FILTER & SORT
 // ══════════════════════════════════════
+function autoFixWeekdayHolidays() {
+  // 自动将 weekday 重复任务中落在节假日的 dt 推进到下一个工作日
+  let changed = false;
+  console.log('[holiday-fix] 开始检查, tasks:', tasks.length);
+  for (const t of tasks) {
+    if (t.repeat !== 'weekday' || !t.dt || t.done) continue;
+    const dateOnly = t.dt.slice(0, 10);
+    const parts = dateOnly.split('-');
+    const d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    if (!isCnWorkday(d)) {
+      // 推进到下一个工作日
+      while (!isCnWorkday(d)) d.setDate(d.getDate() + 1);
+      const newDate = `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+      t.dt = t.dt.includes('T') ? newDate + t.dt.slice(10) : newDate;
+      changed = true;
+    }
+  }
+  if (changed) { save(); console.log('[holiday-fix] 已修正并保存'); }
+  else { console.log('[holiday-fix] 无需修正'); }
+}
+
 function getVisible() {
+  autoFixWeekdayHolidays();
   let r = [...tasks];
   if (curView === 'today')       r = r.filter(t => isToday(t.dt) || isOverdue(t.dt) || !t.dt);
   else if (curView === 'done')   r = r.filter(t => t.done);
