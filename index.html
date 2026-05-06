@@ -2416,12 +2416,13 @@ function getVisible() {
   else if (curFilter === 'overdue') r = r.filter(t => isOverdue(t.dt) && !t.done);
   else if (curFilter === 'done') {
     // 在「今天」视图下，只显示今天完成的任务
-    if (curView === 'today') r = r.filter(t => t.done && t.doneAt === todayStr());
+    // doneAt 有值则精确匹配；无 doneAt（历史数据）则用任务日期 dt 判断
+    if (curView === 'today') r = r.filter(t => t.done && (t.doneAt ? t.doneAt === todayStr() : isToday(t.dt)));
     else r = r.filter(t => t.done);
   }
   else if (curFilter === 'all' && curView === 'today') {
-    // 「今天」视图下「全部」= 今天待完成 + 今天已完成（排除非今天完成的）
-    r = r.filter(t => !t.done || (t.done && t.doneAt === todayStr()));
+    // 「今天」视图下「全部」= 今天待完成 + 今天已完成（排除非今天完成的历史任务）
+    r = r.filter(t => !t.done || (t.done && (t.doneAt ? t.doneAt === todayStr() : isToday(t.dt))));
   }
 
   r.sort((a,b) => {
