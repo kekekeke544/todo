@@ -671,10 +671,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
     <div class="filters" id="filter-bar">
       <button class="chip active" data-f="active" onclick="setFilter('active',this)">待完成</button>
-      <button class="chip" data-f="all" onclick="setFilter('all',this)">当日全部</button>
+      <button class="chip" data-f="all" onclick="setFilter('all',this)">全部</button>
       <button class="chip" data-f="high" onclick="setFilter('high',this)">紧急优先</button>
       <button class="chip" data-f="overdue" onclick="setFilter('overdue',this)">已逾期</button>
-      <button class="chip" data-f="done" onclick="setFilter('done',this)">当日已完成</button>
+      <button class="chip" data-f="done" onclick="setFilter('done',this)">已完成</button>
     </div>
     <div class="divider"></div>
     <div class="task-list" id="task-list"></div>
@@ -2144,6 +2144,8 @@ function toggleTask(id) {
   const t = tasks.find(t => t.id == id);
   if (!t) return;
   t.done = !t.done;
+  // 记录完成日期（取消完成时清除）
+  t.doneAt = t.done ? todayStr() : null;
   // 如果是循环任务，完成后生成下一次（去重：同名+同日期+未完成 不重复生成）
   if (t.done && t.repeat && t.repeat !== 'none' && t.dt) {
     const nextDt = calcNextRepeat(t.dt, t.repeat);
@@ -2412,7 +2414,15 @@ function getVisible() {
   if (curFilter === 'active')  r = r.filter(t => !t.done);
   else if (curFilter === 'high')    r = r.filter(t => (t.priority === 'high' || t.priority === 'mid') && !t.done);
   else if (curFilter === 'overdue') r = r.filter(t => isOverdue(t.dt) && !t.done);
-  else if (curFilter === 'done')    r = r.filter(t => t.done);
+  else if (curFilter === 'done') {
+    // 在「今天」视图下，只显示今天完成的任务
+    if (curView === 'today') r = r.filter(t => t.done && t.doneAt === todayStr());
+    else r = r.filter(t => t.done);
+  }
+  else if (curFilter === 'all' && curView === 'today') {
+    // 「今天」视图下「全部」= 今天待完成 + 今天已完成（排除非今天完成的）
+    r = r.filter(t => !t.done || (t.done && t.doneAt === todayStr()));
+  }
 
   r.sort((a,b) => {
     // 有时间的排前面，按时间升序
@@ -2712,6 +2722,7 @@ function toggleDone(id) {
   const t = tasks.find(x => x.id === id);
   if (!t) return;
   t.done = !t.done;
+  t.doneAt = t.done ? todayStr() : null;
   saveTasks();
   renderWeekView();
 }
