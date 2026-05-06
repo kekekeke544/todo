@@ -671,10 +671,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 
     <div class="filters" id="filter-bar">
       <button class="chip active" data-f="active" onclick="setFilter('active',this)">待完成</button>
-      <button class="chip" data-f="all" onclick="setFilter('all',this)">全部</button>
+      <button class="chip" data-f="all" onclick="setFilter('all',this)">当日全部</button>
       <button class="chip" data-f="high" onclick="setFilter('high',this)">紧急优先</button>
       <button class="chip" data-f="overdue" onclick="setFilter('overdue',this)">已逾期</button>
-      <button class="chip" data-f="done" onclick="setFilter('done',this)">已完成</button>
+      <button class="chip" data-f="done" onclick="setFilter('done',this)">当日已完成</button>
     </div>
     <div class="divider"></div>
     <div class="task-list" id="task-list"></div>
@@ -853,6 +853,41 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 // DATA
 // ══════════════════════════════════════
 let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
+// 启动去重：
+// 1. 完全相同(title+dt+repeat)的未完成任务只保留一个
+// 2. 同title+同repeat(非空)的未完成任务，只保留dt最大的那个（递归任务只需要一个未来实例）
+(function dedupTasks(){
+  const before = tasks.length;
+  // Phase 1: exact dedup
+  const seen = new Set();
+  tasks = tasks.filter(t => {
+    if (t.done) return true;
+    const key = `${t.title}|${t.dt}|${t.repeat||''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  // Phase 2: recurring dedup — same title+repeat, keep only latest dt
+  const recurMap = new Map(); // key: title|repeat → {maxDt, idx}
+  tasks.forEach((t, i) => {
+    if (t.done || !t.repeat) return;
+    const key = `${t.title}|${t.repeat}`;
+    const existing = recurMap.get(key);
+    if (!existing || (t.dt||'') > (existing.maxDt||'')) {
+      if (existing) existing.remove = true;
+      recurMap.set(key, {maxDt: t.dt||'', idx: i, remove: false});
+    } else {
+      tasks[i]._remove = true;
+    }
+  });
+  recurMap.forEach(v => { if (v.remove) tasks[v.idx]._remove = true; });
+  tasks = tasks.filter(t => !t._remove);
+  tasks.forEach(t => delete t._remove);
+  if (tasks.length < before) {
+    localStorage.setItem('td_tasks', JSON.stringify(tasks));
+    console.log('[Todo dedup] Removed', before - tasks.length, 'duplicate(s)');
+  }
+})();
 let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","color":"#64748b"},{"id":"work","name":"工作","color":"#2383e2"},{"id":"life","name":"生活","color":"#16a34a"}]');
 let notes = JSON.parse(localStorage.getItem('td_notes')||'[]');
 let appName = localStorage.getItem('td_appname') || '我的清单';
@@ -2109,15 +2144,19 @@ function toggleTask(id) {
   const t = tasks.find(t => t.id == id);
   if (!t) return;
   t.done = !t.done;
-  // 如果是循环任务，完成后生成下一次
+  // 如果是循环任务，完成后生成下一次（去重：同名+同日期+未完成 不重复生成）
   if (t.done && t.repeat && t.repeat !== 'none' && t.dt) {
     const nextDt = calcNextRepeat(t.dt, t.repeat);
     if (nextDt) {
-      tasks.push({
-        id: Date.now(), title: t.title, done: false,
-        priority: t.priority, dt: nextDt, listId: t.listId,
-        repeat: t.repeat, createdAt: todayStr()
-      });
+      // 只要存在同名+同repeat+未完成的未来任务，就不再生成新的
+      const hasDup = tasks.some(x => !x.done && x.title === t.title && x.repeat === t.repeat && x.id !== t.id);
+      if (!hasDup) {
+        tasks.push({
+          id: Date.now(), title: t.title, done: false,
+          priority: t.priority, dt: nextDt, listId: t.listId,
+          repeat: t.repeat, createdAt: todayStr()
+        });
+      }
     }
   }
   save(); render();
