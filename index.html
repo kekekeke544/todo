@@ -1053,7 +1053,32 @@ function deleteGoal(id) {
 function saveGoalsV2() {
   localStorage.setItem('td_goalsv2', JSON.stringify(goalsV2));
 }
-
+// ── 自动复制上月目标到当前月（页面加载时） ──
+(function autoCarryOverGoals() {
+  const now = new Date();
+  const curYM = now.getFullYear() + '-' + (''+(now.getMonth()+1)).padStart(2,'0');
+  if (goalsNG[curYM]) return;
+  const prev = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const prevYM = prev.getFullYear() + '-' + (''+(prev.getMonth()+1)).padStart(2,'0');
+  const srcData = goalsNG[prevYM];
+  if (!srcData) return;
+  goalsNG[curYM] = { team:{}, personal:{} };
+  ['team','personal'].forEach(col => {
+    const srcCol = srcData[col] || {};
+    const srcOrder = srcCol.__order__ || Object.keys(srcCol).filter(k=>!k.startsWith('__'));
+    srcOrder.forEach(cat => {
+      const srcItems = srcCol[cat] || [];
+      goalsNG[curYM][col][cat] = srcItems.map(item => ({
+        id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+        text: item.text, done: false
+      }));
+    });
+    goalsNG[curYM][col].__order__ = [...srcOrder];
+    if (srcCol.__desc__) goalsNG[curYM][col].__desc__ = Object.assign({}, srcCol.__desc__);
+    if (srcCol.__col_desc__) goalsNG[curYM][col].__col_desc__ = srcCol.__col_desc__;
+  });
+  saveGoalsNG();
+})();
 function renderGoalsView() {
   const main = document.getElementById('goals-view-panel');
   const data = getGoalsMonth(goalsViewYM);
@@ -1185,7 +1210,12 @@ function changeGoalsMonth(delta) {
         const srcCol = srcData[col] || {};
         const srcOrder = srcCol.__order__ || Object.keys(srcCol).filter(k => !k.startsWith('__'));
         srcOrder.forEach(cat => {
-          goalsNG[goalsViewYM][col][cat] = [];
+          const srcItems = srcCol[cat] || [];
+          goalsNG[goalsViewYM][col][cat] = srcItems.map(item => ({
+            id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+            text: item.text,
+            done: false
+          }));
         });
         goalsNG[goalsViewYM][col].__order__ = [...srcOrder];
         // 复制分类总目标描述
