@@ -1057,7 +1057,14 @@ function saveGoalsV2() {
 (function autoCarryOverGoals() {
   const now = new Date();
   const curYM = now.getFullYear() + '-' + (''+(now.getMonth()+1)).padStart(2,'0');
-  if (goalsNG[curYM]) return;
+  if (goalsNG[curYM]) {
+  const existing = goalsNG[curYM];
+  const hasItems = ['team','personal'].some(col => {
+    const c = existing[col] || {};
+    return Object.entries(c).some(([k,v]) => !k.startsWith('__') && Array.isArray(v) && v.length > 0);
+  });
+  if (hasItems) return;
+}
   const prev = new Date(now.getFullYear(), now.getMonth()-1, 1);
   const prevYM = prev.getFullYear() + '-' + (''+(prev.getMonth()+1)).padStart(2,'0');
   const srcData = goalsNG[prevYM];
@@ -1202,7 +1209,12 @@ function changeGoalsMonth(delta) {
   const d = new Date(yr, mo - 1 + delta, 1);
   goalsViewYM = d.getFullYear() + '-' + ('' + (d.getMonth() + 1)).padStart(2, '0');
   // 新月份没有数据 → 从来源月复制分类结构
-  if (!goalsNG[goalsViewYM]) {
+  const _existCheck = goalsNG[goalsViewYM];
+const _hasGoalItems = _existCheck && ['team','personal'].some(col => {
+  const c = _existCheck[col] || {};
+  return Object.entries(c).some(([k,v]) => !k.startsWith('__') && Array.isArray(v) && v.length > 0);
+});
+if (!goalsNG[goalsViewYM] || !_hasGoalItems) { {
     const srcData = goalsNG[fromYM];
     if (srcData) {
       goalsNG[goalsViewYM] = { team: {}, personal: {} };
