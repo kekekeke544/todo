@@ -1214,7 +1214,7 @@ const _hasGoalItems = _existCheck && ['team','personal'].some(col => {
   const c = _existCheck[col] || {};
   return Object.entries(c).some(([k,v]) => !k.startsWith('__') && Array.isArray(v) && v.length > 0);
 });
-if (!goalsNG[goalsViewYM] || !_hasGoalItems) { {
+if (!goalsNG[goalsViewYM] || !_hasGoalItems) { 
     const srcData = goalsNG[fromYM];
     if (srcData) {
       goalsNG[goalsViewYM] = { team: {}, personal: {} };
