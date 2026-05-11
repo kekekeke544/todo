@@ -284,24 +284,29 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 /* ── VIEW panels ── */
 #task-view{display:flex;flex-direction:row;flex:1;overflow:hidden}
 .task-left-col{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0}
-.task-right-col{width:380px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-.rich-toolbar{display:flex;align-items:center;gap:2px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--sb)}
-.rich-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:4px 7px;border-radius:4px;color:var(--t2);font-family:var(--font);line-height:1;transition:background .1s}
-.rich-btn:hover{background:var(--sb-active);color:var(--text)}
-.rich-btn.active{background:var(--sb-active);color:var(--text)}
-.rich-sep{width:1px;height:18px;background:var(--border);margin:0 3px;flex-shrink:0}
-.rich-editor{flex:1;overflow-y:auto;padding:16px 20px;outline:none;font-size:14px;font-family:var(--font);color:var(--text);line-height:1.8;word-break:break-word}
-.rich-editor:empty:before{content:"随手记录…";color:var(--t3);pointer-events:none}
-.rich-editor h1{font-size:20px;font-weight:700;margin:10px 0 4px;line-height:1.4}
-.rich-editor h2{font-size:16px;font-weight:600;margin:8px 0 4px;line-height:1.4}
-.rich-editor h3{font-size:14px;font-weight:600;margin:6px 0 4px;line-height:1.4}
+.task-right-col{width:400px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:#faf9f7}
+.rich-toolbar{display:flex;align-items:center;gap:2px;padding:8px 14px;border-bottom:1px solid #e8e6e1;flex-shrink:0;flex-wrap:wrap;background:#f2f0ec}
+.rich-btn{background:none;border:none;cursor:pointer;font-size:12.5px;padding:4px 8px;border-radius:5px;color:#555;font-family:var(--font);line-height:1;transition:background .1s;font-weight:500}
+.rich-btn:hover{background:#e5e3de;color:#111}
+.rich-btn.active{background:#e5e3de;color:#111}
+.rich-sep{width:1px;height:16px;background:#dbd9d4;margin:0 4px;flex-shrink:0}
+.rich-editor{flex:1;overflow-y:auto;padding:20px 24px 40px;outline:none;font-size:14.5px;font-family:var(--font);color:#1a1a1a;line-height:1.85;word-break:break-word;background:#faf9f7}
+.rich-editor:empty:before{content:"随手记录…";color:#bbb;pointer-events:none}
+.rich-editor h1{font-size:21px;font-weight:700;margin:14px 0 6px;line-height:1.3;color:#111}
+.rich-editor h2{font-size:17px;font-weight:600;margin:12px 0 4px;line-height:1.3;color:#222}
+.rich-editor h3{font-size:15px;font-weight:600;margin:10px 0 4px;line-height:1.3;color:#333}
 .rich-editor ul,.rich-editor ol{padding-left:22px;margin:4px 0}
-.rich-editor li{margin:2px 0}
-.rich-editor blockquote{border-left:3px solid var(--border);margin:6px 0;padding:4px 12px;color:var(--t2);background:var(--sb);border-radius:0 4px 4px 0}
-.rich-editor a{color:var(--accent);text-decoration:underline}
-.rich-editor p{margin:2px 0}
-.rich-editor code{background:var(--sb-active);padding:1px 5px;border-radius:3px;font-size:13px;font-family:monospace}
-.rich-status{font-size:11px;color:var(--t3);padding:4px 12px;border-top:1px solid var(--border);flex-shrink:0;text-align:right}
+.rich-editor li{margin:3px 0}
+.rich-editor blockquote{border-left:3px solid #c8c4bc;margin:8px 0;padding:6px 14px;color:#666;background:#f0ede8;border-radius:0 6px 6px 0;font-style:italic}
+.rich-editor a{color:var(--accent);text-decoration:underline;cursor:pointer}
+.rich-editor p{margin:3px 0}
+.rich-editor code{background:#eceae5;padding:1px 5px;border-radius:3px;font-size:13px;font-family:monospace;color:#c0392b}
+/* checkbox items */
+.rich-editor .cb-item{display:flex;align-items:flex-start;gap:8px;padding:3px 0;list-style:none}
+.rich-editor .cb-item input[type=checkbox]{margin-top:4px;width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:#2383e2}
+.rich-editor .cb-item.cb-done span{text-decoration:line-through;color:#aaa}
+.rich-editor ul.cb-list{padding-left:0;margin:4px 0}
+.rich-status{font-size:11px;color:#aaa;padding:5px 16px;border-top:1px solid #e8e6e1;flex-shrink:0;text-align:right;background:#f2f0ec}
 #notes-view{display:none;flex-direction:column;flex:1;overflow:hidden}
 #note-editor-view{display:none;flex-direction:column;flex:1;overflow:hidden}
 
@@ -717,6 +722,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <button class="rich-btn" title="引用块" onclick="richBlock('blockquote')">❝ 引用</button>
       <div class="rich-sep"></div>
       <button class="rich-btn" title="插入链接" onclick="richInsertLink()">🔗 链接</button>
+      <button class="rich-btn" title="待办项" onclick="richInsertCheckbox()">☑ 待办</button>
       <div class="rich-sep"></div>
       <button class="rich-btn" title="清除格式" onclick="richCmd('removeFormat')" style="color:var(--t3)">Tx</button>
     </div>
@@ -3204,6 +3210,48 @@ function richBlock(tag) {
       document.execCommand('formatBlock', false, 'p');
     } else {
       document.execCommand('formatBlock', false, tag);
+    }
+  }
+  richSave();
+}
+
+function richInsertCheckbox() {
+  const ed = document.getElementById('rich-editor');
+  ed.focus();
+  // find or create cb-list before cursor
+  const sel = window.getSelection();
+  const id = 'cb_' + Date.now();
+  const html = `<ul class="cb-list"><li class="cb-item" data-cbid="${id}"><input type="checkbox" id="${id}" onchange="richCbToggle(this)"><span contenteditable="true" placeholder="待办项…">待办项</span></li></ul><p><br></p>`;
+  document.execCommand('insertHTML', false, html);
+  // select the span text for immediate editing
+  setTimeout(() => {
+    const span = ed.querySelector(`[data-cbid="${id}"] span`);
+    if (span) {
+      const r = document.createRange();
+      r.selectNodeContents(span);
+      const s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    }
+  }, 0);
+  richSave();
+}
+
+function richCbToggle(cb) {
+  const item = cb.closest('.cb-item');
+  if (!item) return;
+  if (cb.checked) {
+    item.classList.add('cb-done');
+    // move to end of parent list
+    const list = item.closest('.cb-list');
+    if (list) list.appendChild(item);
+  } else {
+    item.classList.remove('cb-done');
+    // move back before first done item
+    const list = item.closest('.cb-list');
+    if (list) {
+      const firstDone = list.querySelector('.cb-item.cb-done');
+      if (firstDone && firstDone !== item) list.insertBefore(item, firstDone);
     }
   }
   richSave();
