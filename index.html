@@ -22,7 +22,7 @@
 body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;overflow:hidden;color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
 /* ── SIDEBAR ── */
-.sidebar{width:240px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0 12px;flex-shrink:0;overflow:hidden}
+.sidebar{width:320px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0 12px;flex-shrink:0;overflow:hidden}
 .ws{display:flex;align-items:center;gap:8px;padding:4px 14px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--border);margin-bottom:6px}
 .ws-icon{width:28px;height:28px;background:var(--text);color:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .sb-sec{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);padding:10px 14px 3px;text-transform:uppercase}
@@ -284,7 +284,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 /* ── VIEW panels ── */
 #task-view{display:flex;flex-direction:row;flex:1;overflow:hidden}
 .task-left-col{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0}
-.task-right-col{width:400px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:#faf9f7}
+.task-right-col{display:none!important}
 .rich-toolbar{display:flex;align-items:center;gap:2px;padding:8px 14px;border-bottom:1px solid #e8e6e1;flex-shrink:0;flex-wrap:wrap;background:#f2f0ec}
 .rich-btn{background:none;border:none;cursor:pointer;font-size:12.5px;padding:4px 8px;border-radius:5px;color:#555;font-family:var(--font);line-height:1;transition:background .1s;font-weight:500}
 .rich-btn:hover{background:#e5e3de;color:#111}
@@ -433,9 +433,10 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .goals-new-month select{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:12.5px;color:var(--text);background:var(--bg);cursor:pointer;outline:none}
 .goals-new-month button{padding:5px 12px;background:var(--text);color:#fff;border:none;border-radius:6px;font-family:var(--font);font-size:12.5px;cursor:pointer;font-weight:500}
 
-.sb-stickies{border-top:1px solid var(--border);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:8px 10px}
-.sb-stickies-hd{font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;flex-shrink:0}
-#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:12px;color:var(--text);line-height:1.6;width:100%;box-sizing:border-box;overflow-y:auto;word-break:break-word;white-space:pre-wrap}
+.sb-stickies{border-top:1px solid var(--border);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
+.sb-stickies-hd{font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;padding:8px 10px 4px;flex-shrink:0}
+.sb-rich-toolbar{display:flex;align-items:center;gap:1px;padding:4px 6px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--sb)}
+#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);line-height:1.75;width:100%;box-sizing:border-box;overflow-y:auto;word-break:break-word;padding:10px 12px}
 #sb-sticky-pad:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
 #sb-sticky-pad a{color:var(--accent);text-decoration:underline;cursor:pointer}
 #sb-sticky-pad b,#sb-sticky-pad strong{font-weight:700}
@@ -519,10 +520,22 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
   </div>
   <div class="sb-lists" id="sb-lists"></div>
 
-  <!-- ── 便签区 ── -->
+  <!-- ── 便签区（升级版，带工具栏） ── -->
   <div class="sb-stickies" id="sb-stickies-area">
     <div class="sb-stickies-hd">便签</div>
-    <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="记录常用链接、要点…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)" onmousedown="handleCtxLinkClick(event)"></div>
+    <div class="sb-rich-toolbar">
+      <button class="rich-btn" title="加粗" onclick="spCmd('bold')"><b>B</b></button>
+      <button class="rich-btn" title="斜体" onclick="spCmd('italic')"><i>I</i></button>
+      <button class="rich-btn" title="下划线" onclick="spCmd('underline')"><u>U</u></button>
+      <div class="rich-sep"></div>
+      <button class="rich-btn" title="标题1" onclick="spBlock('h1')">H1</button>
+      <button class="rich-btn" title="标题2" onclick="spBlock('h2')">H2</button>
+      <div class="rich-sep"></div>
+      <button class="rich-btn" title="无序列表" onclick="spCmd('insertUnorderedList')">• 列表</button>
+      <div class="rich-sep"></div>
+      <button class="rich-btn" title="清除格式" onclick="spCmd('removeFormat')" style="color:var(--t3)">Tx</button>
+    </div>
+    <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="随手记录…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)" onmousedown="handleCtxLinkClick(event)"></div>
     <!-- 右键菜单 -->
     <div class="sp-ctx-menu" id="sp-ctx-menu">
       <div class="sp-ctx-item" onclick="spCtxBold()"><b>B</b> 加粗</div>
@@ -1643,6 +1656,16 @@ function saveStickyPad() {
 function loadStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
   if (el) el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
+}
+function spCmd(cmd) {
+  document.getElementById('sb-sticky-pad').focus();
+  document.execCommand(cmd, false, null);
+  saveStickyPad();
+}
+function spBlock(tag) {
+  document.getElementById('sb-sticky-pad').focus();
+  document.execCommand('formatBlock', false, tag);
+  saveStickyPad();
 }
 
 // 右键菜单（便签）
