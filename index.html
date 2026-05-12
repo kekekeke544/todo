@@ -2942,7 +2942,7 @@ function switchView(view, el) {
     updateHeader();
     renderWeekView();
   } else {
-    document.getElementById('task-right-col').style.display = 'flex';
+    document.getElementById('task-right-col').style.display = view === 'today' ? 'flex' : 'none';
     document.querySelector('.add-wrap').classList.remove('hidden');
     document.getElementById('filter-bar').style.display = '';
     document.querySelector('.divider').style.display = '';
@@ -2961,6 +2961,7 @@ function switchViewList(id, el) {
   document.getElementById('notes-view').style.display = 'none';
   document.getElementById('note-editor-view').style.display = 'none';
   document.getElementById('goals-view-panel').style.display = 'none';
+  document.getElementById('task-right-col').style.display = 'none';
   document.querySelector('.add-wrap').classList.remove('hidden');
   document.getElementById('filter-bar').style.display = '';
   document.querySelector('.divider').style.display = '';
