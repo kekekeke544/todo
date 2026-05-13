@@ -436,7 +436,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sb-stickies{border-top:1px solid var(--border);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
 .sb-stickies-hd{font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;padding:8px 10px 4px;flex-shrink:0}
 .sb-rich-toolbar{display:flex;align-items:center;gap:0;padding:3px 4px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:nowrap;background:var(--sb);overflow-x:auto}
-#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);line-height:1.75;width:100%;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;padding:10px 12px}
+#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);line-height:1.75;width:100%;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;padding:10px 18px}
 #sb-sticky-pad:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
 #sb-sticky-pad .sp-cb-item{display:flex;align-items:flex-start;gap:6px;padding:2px 0;list-style:none}
 #sb-sticky-pad .sp-cb-item input[type=checkbox]{margin-top:3px;width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:#2383e2}
@@ -1676,10 +1676,29 @@ function spBlock(tag) {
 function spInsertCheckbox() {
   const pad = document.getElementById('sb-sticky-pad');
   pad.focus();
+  // 检查光标是否已在 checkbox 行内，如果是则移除 checkbox（toggle 行为）
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const node = sel.anchorNode;
+    const existing = node && (node.closest ? node.closest('.sp-cb-item') : node.parentElement && node.parentElement.closest('.sp-cb-item'));
+    if (existing) {
+      // 移除 checkbox，保留文字内容
+      const span = existing.querySelector('span');
+      const text = span ? span.innerHTML : '';
+      const p = document.createElement('div');
+      p.innerHTML = text || '<br>';
+      existing.replaceWith(p);
+      // 光标放到新元素
+      const r = document.createRange(); r.selectNodeContents(p); r.collapse(false);
+      sel.removeAllRanges(); sel.addRange(r);
+      saveStickyPad();
+      return;
+    }
+  }
+  // 不在 checkbox 内，插入新的
   const id = 'spcb_' + Date.now();
-  const html = `<div class="sp-cb-item" data-cbid="${id}"><input type="checkbox" onchange="spCbToggle(this)"><span contenteditable="true">&nbsp;</span></div><div><br></div>`;
+  const html = `<div class="sp-cb-item" data-cbid="${id}"><input type="checkbox" onchange="spCbToggle(this)"><span contenteditable="true">&nbsp;</span></div>`;
   document.execCommand('insertHTML', false, html);
-  // 光标移到 span 内
   setTimeout(() => {
     const span = pad.querySelector(`[data-cbid="${id}"] span`);
     if (span) { const r = document.createRange(); r.selectNodeContents(span); r.collapse(false); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
@@ -1698,7 +1717,7 @@ function spCbToggle(el) {
   }
   saveStickyPad();
 }
-// 便签区键盘事件：Backspace 删空 checkbox 项时整行删除
+// 便签区键盘事件：Backspace 在 checkbox span 为空时，转为普通行（不删内容）
 document.addEventListener('DOMContentLoaded', function() {
   const pad = document.getElementById('sb-sticky-pad');
   if (!pad) return;
@@ -1711,7 +1730,16 @@ document.addEventListener('DOMContentLoaded', function() {
       if (cbItem) {
         const span = cbItem.querySelector('span');
         const text = span ? span.textContent.replace(/\u00a0/g,'').trim() : '';
-        if (!text) { e.preventDefault(); cbItem.remove(); saveStickyPad(); }
+        if (!text && sel.anchorOffset === 0) {
+          // 空 checkbox：转为普通 div
+          e.preventDefault();
+          const p = document.createElement('div');
+          p.innerHTML = '<br>';
+          cbItem.replaceWith(p);
+          const r = document.createRange(); r.selectNodeContents(p); r.collapse(false);
+          sel.removeAllRanges(); sel.addRange(r);
+          saveStickyPad();
+        }
       }
     }
   });
