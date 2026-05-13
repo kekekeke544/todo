@@ -436,8 +436,12 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
 .sb-stickies{border-top:1px solid var(--border);flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
 .sb-stickies-hd{font-size:10.5px;font-weight:600;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;padding:8px 10px 4px;flex-shrink:0}
 .sb-rich-toolbar{display:flex;align-items:center;gap:1px;padding:4px 6px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--sb)}
-#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);line-height:1.75;width:100%;box-sizing:border-box;overflow-y:auto;word-break:break-word;padding:10px 12px}
+#sb-sticky-pad{flex:1;border:none;outline:none;background:transparent;font-family:var(--font);font-size:13px;color:var(--text);line-height:1.75;width:100%;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;padding:10px 12px}
 #sb-sticky-pad:empty:before{content:attr(data-placeholder);color:var(--t3);pointer-events:none}
+#sb-sticky-pad .sp-cb-item{display:flex;align-items:flex-start;gap:6px;padding:2px 0;list-style:none}
+#sb-sticky-pad .sp-cb-item input[type=checkbox]{margin-top:3px;width:14px;height:14px;flex-shrink:0;cursor:pointer;accent-color:#2383e2}
+#sb-sticky-pad .sp-cb-item.sp-cb-done span{text-decoration:line-through;color:#aaa}
+#sb-sticky-pad .sp-cb-item span{flex:1;min-width:0;outline:none}
 #sb-sticky-pad a{color:var(--accent);text-decoration:underline;cursor:pointer}
 #sb-sticky-pad b,#sb-sticky-pad strong{font-weight:700}
 /* 右键菜单 */
@@ -531,7 +535,9 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <button class="rich-btn" title="标题1" onclick="spBlock('h1')">H1</button>
       <button class="rich-btn" title="标题2" onclick="spBlock('h2')">H2</button>
       <div class="rich-sep"></div>
-      <button class="rich-btn" title="无序列表" onclick="spCmd('insertUnorderedList')">• 列表</button>
+      <button class="rich-btn" title="无序列表" onclick="spCmd('insertUnorderedList')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></button>
+      <button class="rich-btn" title="有序列表" onclick="spCmd('insertOrderedList')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="2" y="14" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="2" y="20" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg></button>
+      <button class="rich-btn" title="勾选框" onclick="spInsertCheckbox()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 16 9"/></svg></button>
       <div class="rich-sep"></div>
       <button class="rich-btn" title="清除格式" onclick="spCmd('removeFormat')" style="color:var(--t3)">Tx</button>
     </div>
@@ -1665,6 +1671,27 @@ function spCmd(cmd) {
 function spBlock(tag) {
   document.getElementById('sb-sticky-pad').focus();
   document.execCommand('formatBlock', false, tag);
+  saveStickyPad();
+}
+function spInsertCheckbox() {
+  const pad = document.getElementById('sb-sticky-pad');
+  pad.focus();
+  const id = 'spcb_' + Date.now();
+  const html = `<div class="sp-cb-item" data-cbid="${id}"><input type="checkbox" onchange="spCbToggle(this)"><span contenteditable="true"> </span></div>`;
+  document.execCommand('insertHTML', false, html);
+  saveStickyPad();
+}
+function spCbToggle(el) {
+  const item = el.closest('.sp-cb-item');
+  if (!item) return;
+  if (el.checked) {
+    item.classList.add('sp-cb-done');
+    // 沉底：移到 pad 末尾
+    const pad = document.getElementById('sb-sticky-pad');
+    pad.appendChild(item);
+  } else {
+    item.classList.remove('sp-cb-done');
+  }
   saveStickyPad();
 }
 
