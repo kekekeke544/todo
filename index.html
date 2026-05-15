@@ -2196,7 +2196,13 @@ function toggleDT() {
   popup.classList.add('open');
 }
 function onDTDateChange() {
+  const oldDate = addDT.date;
   addDT.date = document.getElementById('dt-date-input').value;
+  // 结束日期跟随：如果结束日期为空、等于旧开始日期、或早于新开始日期，自动同步
+  if (!addDT.endDate || addDT.endDate === oldDate || addDT.endDate < addDT.date) {
+    addDT.endDate = addDT.date;
+    document.getElementById('dt-end-date-input').value = addDT.endDate;
+  }
 }
 function onDTEndDateChange() {
   addDT.endDate = document.getElementById('dt-end-date-input').value;
