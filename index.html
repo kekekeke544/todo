@@ -2936,8 +2936,8 @@ function renderWeekView() {
         daysHtml += `<div class="wk-task-row ${t.done?'done':''}" onclick="showEditModal('${t.id}')">
           <div class="wk-task-check ${t.done?'checked':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
           <div style="width:4px;height:4px;border-radius:50%;background:${priColor};flex-shrink:0"></div>
+          ${timeStr ? `<div class="wk-task-time" style="margin-right:6px">${timeStr}</div>` : ''}
           <div class="wk-task-title">${escHtml(t.title)}</div>
-          ${timeStr ? `<div class="wk-task-time">${timeStr}</div>` : ''}
         </div>`;
       });
     }
