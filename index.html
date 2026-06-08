@@ -931,6 +931,17 @@ body.sb-resizing-active .sidebar{transition:none}
 // DATA
 // ══════════════════════════════════════
 let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
+// 启动修正：结束早于开始的旧任务自动对调起止时间
+(function fixOldTimeRanges(){
+  let fixed = false;
+  tasks.forEach(t => {
+    if (t.dt && t.dtEnd) {
+      const r = fixTimeRange(t.dt, t.dtEnd);
+      if (r.dt !== t.dt || r.dtEnd !== t.dtEnd) { t.dt = r.dt; t.dtEnd = r.dtEnd; fixed = true; }
+    }
+  });
+  if (fixed) localStorage.setItem('td_tasks', JSON.stringify(tasks));
+})();
 // 启动去重：
 // 1. 完全相同(title+dt+repeat)的未完成任务只保留一个
 // 2. 同title+同repeat(非空)的未完成任务，只保留dt最大的那个（递归任务只需要一个未来实例）
@@ -2197,6 +2208,19 @@ function buildDTValue(date, h, m) {
   if (!h) return date;
   return `${date}T${h}:${m||'00'}`;
 }
+// 修正起止时间：若结束早于开始（二者都含具体时间），自动对调。返回 {dt, dtEnd}
+function fixTimeRange(dt, dtEnd) {
+  if (!dt || !dtEnd) return { dt, dtEnd };
+  // 只有两者都含时间（带 T）才比较
+  if (!dt.includes('T') || !dtEnd.includes('T')) return { dt, dtEnd };
+  const s = new Date(dt), e = new Date(dtEnd);
+  if (isNaN(s) || isNaN(e)) return { dt, dtEnd };
+  if (e.getTime() < s.getTime()) {
+    // 结束早于开始 → 互换，保证区间合法
+    return { dt: dtEnd, dtEnd: dt };
+  }
+  return { dt, dtEnd };
+}
 
 // ══════════════════════════════════════
 // 优先级下拉
@@ -2437,11 +2461,12 @@ function addTask() {
   const title = inp.value.trim();
   if (!title) return;
   const dtVal = buildDTValue(addDT.date, addDT.hour, addDT.min);
+  const _r = fixTimeRange(dtVal, buildDTValue(addDT.endDate||addDT.date, addDT.endHour, addDT.endMin) || '');
   tasks.unshift({
     id: Date.now(), title, done: false,
     priority: addPrio,
-    dt: dtVal,
-    dtEnd: buildDTValue(addDT.endDate||addDT.date, addDT.endHour, addDT.endMin) || '',
+    dt: _r.dt,
+    dtEnd: _r.dtEnd,
     listId: addListId,
     repeat: addRepeat,
     createdAt: todayStr()
@@ -2689,8 +2714,10 @@ function saveEdit() {
   t.priority = document.getElementById('edit-prio').value;
   const repVal = document.getElementById('edit-repeat').value;
   t.repeat   = repVal === 'custom' ? (editCustomRepeatVal || 'none') : repVal;
-  t.dt       = document.getElementById('edit-dt').value;
-  t.dtEnd    = document.getElementById('edit-dt-end').value || '';
+  {
+    const _r = fixTimeRange(document.getElementById('edit-dt').value, document.getElementById('edit-dt-end').value || '');
+    t.dt = _r.dt; t.dtEnd = _r.dtEnd;
+  }
   t.listId   = document.getElementById('edit-list').value;
   save(); hideEditModal(); render();
 }
