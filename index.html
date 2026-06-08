@@ -207,8 +207,9 @@ body.sb-resizing-active .sidebar{transition:none}
 .tag-list{font-size:11.5px;color:var(--t3)}
 .tag-repeat{font-size:11px;color:#8b5cf6;background:#f5f3ff;padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:2px}
 
-.t-title-row{display:flex;align-items:center;gap:4px;min-width:0}
+.t-title-row{display:flex;align-items:center;gap:5px;min-width:0}
 .t-title-row .t-title{flex:1;min-width:0}
+.t-prio-inline{font-size:13px;font-weight:700;flex-shrink:0;white-space:nowrap}
 .t-actions{display:flex;gap:1px;flex-shrink:0;opacity:0;transition:opacity .12s}
 .task-item:hover .t-actions{opacity:1}
 .t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
@@ -3087,8 +3088,9 @@ function renderTasks() {
     const ov = isOverdue(t.dt) && !t.done;
     const dtStr = t.dt ? fmtDT(t.dt) : '';
     const cfg = PRIO_CFG[t.priority] || PRIO_CFG.none;
-    const pTag = (t.priority && t.priority !== 'none')
-      ? `<span class="tag ${cfg.cls}"><div class="td" style="background:${cfg.color}"></div>${cfg.label}</span>` : '';
+    // 优先级：去掉圆点与胶囊背景，只留文字+颜色，放到标题前面
+    const pInline = (t.priority && t.priority !== 'none')
+      ? `<span class="t-prio-inline" style="color:${cfg.color}">${cfg.label}</span>` : '';
     const dtEndStr = t.dtEnd ? fmtDT(t.dtEnd) : '';
     const dtRangeStr = dtStr && dtEndStr ? `${dtStr} → ${dtEndStr.includes(dtStr.slice(0,10)) ? dtEndStr.slice(-5) : dtEndStr}` : dtStr;
     const dTag = dtRangeStr
@@ -3101,7 +3103,7 @@ function renderTasks() {
       <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
       <div class="t-body">
         <div class="t-title-row">
-          <div class="t-title">${linkify(t.title)}</div>
+          ${pInline}<div class="t-title">${linkify(t.title)}</div>
           <div class="t-actions">
             <button class="t-act-btn" onclick="showEditModal('${t.id}')" title="编辑">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -3112,7 +3114,7 @@ function renderTasks() {
           </div>
         </div>
         ${t.body ? `<div class="t-body-preview">${linkify(t.body)}</div>` : ''}
-        <div class="t-meta">${pTag}${dTag}${rTag}${lTag}</div>
+        <div class="t-meta">${dTag}${rTag}${lTag}</div>
       </div>
     </div>`;
   }).join('');
