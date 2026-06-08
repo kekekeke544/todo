@@ -544,6 +544,7 @@ body.sb-resizing-active .sidebar{transition:none}
       <button class="rich-btn" title="有序列表" onclick="spCmd('insertOrderedList')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="2" y="14" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="2" y="20" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg></button>
       <button class="rich-btn" title="勾选框" onclick="spInsertCheckbox()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 16 9"/></svg></button>
       <div class="rich-sep"></div>
+      <button class="rich-btn" title="整理：勾选框与文字同排" onclick="spTidyCheckboxes()" style="color:var(--t3)">⚖</button>
       <button class="rich-btn" title="清除格式" onclick="spCmd('removeFormat')" style="color:var(--t3)">Tx</button>
     </div>
     <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="随手记录…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)" onmousedown="handleCtxLinkClick(event)"></div>
@@ -1669,33 +1670,55 @@ function loadStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
   if (el) { el.innerHTML = localStorage.getItem('td_sticky_pad') || ''; normalizeStickyCheckboxes(el); }
 }
-// 修复历史内容：空勾选框紧跟一个文本块 → 把文字并入勾选框 span，使二者同排
+// 修复历史内容：空勾选框 + 后面的文本块 → 把文字并入勾选框 span，使二者同排
+// 强壮版：自动补 span、跳过中间空行、合并到下一个勾选框之前的所有文本
 function normalizeStickyCheckboxes(pad) {
   if (!pad) return;
   let changed = false;
-  // 多遍合并，处理连续多个 checkbox+文本 的情况
-  for (let pass = 0; pass < 50; pass++) {
+  function blockText(el){ return el ? el.textContent.replace(/\u00a0/g,'').replace(/[\s\n]/g,'').trim() : ''; }
+  for (let pass = 0; pass < 100; pass++) {
     let mergedThisPass = false;
-    const items = pad.querySelectorAll('.sp-cb-item');
+    const items = Array.from(pad.querySelectorAll('.sp-cb-item'));
     for (const item of items) {
-      const span = item.querySelector('span');
-      if (!span) continue;
-      const spanText = span.textContent.replace(/\u00a0/g, '').trim();
-      if (spanText) continue; // span 已有内容，不动
-      // span 为空：看下一个兄弟是不是普通文本块
-      const next = item.nextElementSibling;
-      if (!next || next.classList.contains('sp-cb-item')) continue;
-      const nextText = next.textContent.replace(/\u00a0/g, '').trim();
-      if (!nextText) continue; // 下一个也是空，跳过
-      // 把下一个块的内容搬进 span（保留加粗等富文本）
-      span.innerHTML = next.innerHTML;
-      next.remove();
+      // 1) 确保有 span（旧结构可能丢了 span）
+      let span = item.querySelector('span');
+      if (!span) {
+        span = document.createElement('span');
+        span.setAttribute('contenteditable','true');
+        span.innerHTML = '\u00a0';
+        item.appendChild(span);
+        changed = true;
+      }
+      // 2) span 已有真实文字 → 跳过
+      if (blockText(span)) continue;
+      // 3) span 为空：向后找第一个"有文字的普通块"（跳过纯空行），遇到下一个勾选框就停
+      let cursor = item.nextElementSibling;
+      let textBlock = null;
+      const emptiesToRemove = [];
+      while (cursor) {
+        if (cursor.classList && cursor.classList.contains('sp-cb-item')) break; // 到下一个勾选框，停
+        if (blockText(cursor)) { textBlock = cursor; break; }
+        emptiesToRemove.push(cursor); // 中间的空行，记下来一起删
+        cursor = cursor.nextElementSibling;
+      }
+      if (!textBlock) continue; // 后面没有可合并的文字
+      // 4) 把文字块内容搬进 span（保留加粗/链接等富文本）
+      span.innerHTML = textBlock.innerHTML;
+      textBlock.remove();
+      emptiesToRemove.forEach(e => e.remove()); // 顺手清掉中间夹的空行
       mergedThisPass = true;
       changed = true;
     }
     if (!mergedThisPass) break;
   }
   if (changed) saveStickyPad();
+}
+// 手动整理便签（工具栏按钮调用）
+function spTidyCheckboxes() {
+  const pad = document.getElementById('sb-sticky-pad');
+  if (!pad) return;
+  normalizeStickyCheckboxes(pad);
+  pad.focus();
 }
 function spCmd(cmd) {
   document.getElementById('sb-sticky-pad').focus();
