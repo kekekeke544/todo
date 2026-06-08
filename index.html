@@ -209,7 +209,7 @@ body.sb-resizing-active .sidebar{transition:none}
 
 .t-title-row{display:flex;align-items:center;gap:5px;min-width:0}
 .t-title-row .t-title{flex:1;min-width:0}
-.t-prio-inline{font-size:13px;font-weight:700;flex-shrink:0;white-space:nowrap}
+.t-prio-inline{font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap;padding:1px 7px;border-radius:5px;line-height:1.6;border:1px solid transparent}
 .t-actions{display:flex;gap:1px;flex-shrink:0;opacity:0;transition:opacity .12s}
 .task-item:hover .t-actions{opacity:1}
 .t-btn{background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
@@ -598,7 +598,7 @@ body.sb-resizing-active .sidebar{transition:none}
         <!-- 优先级 -->
         <div class="prio-wrapper" id="prio-wrapper">
           <div class="prio-trigger" id="prio-trigger" onclick="togglePrio()">
-            <div class="prio-dot" id="prio-dot" style="background:#ccc"></div>
+            <div class="prio-dot" id="prio-dot" style="background:#16a34a"></div>
             <span id="prio-label">优先级</span>
           </div>
           <div class="prio-dropdown" id="prio-dropdown">
@@ -608,11 +608,8 @@ body.sb-resizing-active .sidebar{transition:none}
             <div class="prio-opt" data-val="mid" onclick="selectPrio('mid',this)">
               <div class="prio-dot" style="background:#d97706"></div>重要
             </div>
-            <div class="prio-opt" data-val="low" onclick="selectPrio('low',this)">
+            <div class="prio-opt selected" data-val="low" onclick="selectPrio('low',this)">
               <div class="prio-dot" style="background:#16a34a"></div>普通
-            </div>
-            <div class="prio-opt selected" data-val="none" onclick="selectPrio('none',this)">
-              <div class="prio-dot" style="background:#ccc"></div>常态
             </div>
           </div>
         </div>
@@ -836,7 +833,6 @@ body.sb-resizing-active .sidebar{transition:none}
       <div>
         <label>优先级</label>
         <select id="edit-prio">
-          <option value="none">常态</option>
           <option value="low">普通</option>
           <option value="mid">重要</option>
           <option value="high">紧急</option>
@@ -1047,7 +1043,7 @@ let editingListId = null, editingNoteId = null, editingTaskId = null;
 let weekOffset = 0;
 
 // 添加栏内部状态
-let addPrio = 'none';
+let addPrio = 'low';
 let addDT = { date: '', hour: '', min: '', endDate: '', endHour: '', endMin: '' };
 let addListId = lists[0]?.id || 'default';
 let addRepeat = 'none';
@@ -2512,7 +2508,7 @@ function addTask() {
   inp.value = '';
   addDT = { date:'', hour:'', min:'', endDate:'', endHour:'', endMin:'' };
   document.getElementById('dt-label').textContent = '';
-  selectPrio('none', document.querySelector('#prio-dropdown [data-val="none"]'));
+  selectPrio('low', document.querySelector('#prio-dropdown [data-val="low"]'));
   selectRepeat('none', document.querySelector('#repeat-dd [data-val="none"]'));
   render();
 }
@@ -2604,7 +2600,7 @@ function openEditModal(id) {
   editingTaskId = id;
   document.getElementById('edit-title').value = t.title;
   document.getElementById('edit-body').value = t.body || '';
-  document.getElementById('edit-prio').value = t.priority || 'none';
+  document.getElementById('edit-prio').value = (!t.priority || t.priority === 'none') ? 'low' : t.priority;
   // 重置自定义循环状态
   editCustomRepeatVal = '';
   document.getElementById('edit-custom-repeat-display').style.display = 'none';
@@ -3122,10 +3118,10 @@ function renderTasks() {
   container.innerHTML = visible.map(t => {
     const ov = isOverdue(t.dt) && !t.done;
     const dtStr = t.dt ? fmtDT(t.dt) : '';
-    const cfg = PRIO_CFG[t.priority] || PRIO_CFG.none;
-    // 优先级：去掉圆点与胶囊背景，只留文字+颜色，放到标题前面
-    const pInline = (t.priority && t.priority !== 'none')
-      ? `<span class="t-prio-inline" style="color:${cfg.color}">${cfg.label}</span>` : '';
+      // 优先级：小框样式（半透明底色+同色文字+细边框），放到标题前面；无优先级或旧数据 none 视为普通
+    const _pr = (!t.priority || t.priority === 'none') ? 'low' : t.priority;
+    const cfg = PRIO_CFG[_pr] || PRIO_CFG.low;
+    const pInline = `<span class="t-prio-inline" style="color:${cfg.color};background:${cfg.bg};border-color:${cfg.color}33">${cfg.label}</span>`;
     const dtEndStr = t.dtEnd ? fmtDT(t.dtEnd) : '';
     const dtRangeStr = dtStr && dtEndStr ? `${dtStr} → ${dtEndStr.includes(dtStr.slice(0,10)) ? dtEndStr.slice(-5) : dtEndStr}` : dtStr;
     const dTag = dtRangeStr
