@@ -22,7 +22,11 @@
 body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;overflow:hidden;color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
 /* ── SIDEBAR ── */
-.sidebar{width:280px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0 12px;flex-shrink:0;overflow:hidden}
+.sidebar{width:280px;background:var(--sb);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0 12px;flex-shrink:0;overflow:hidden;position:relative}
+.sb-resizer{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:10;background:transparent;transition:background .15s}
+.sb-resizer:hover,.sb-resizer.sb-resizing{background:var(--accent,#2383e2);opacity:.5}
+body.sb-resizing-active{cursor:col-resize;user-select:none}
+body.sb-resizing-active .sidebar{transition:none}
 .ws{display:flex;align-items:center;gap:8px;padding:4px 14px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--border);margin-bottom:6px}
 .ws-icon{width:28px;height:28px;background:var(--text);color:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .sb-sec{font-size:10.5px;font-weight:600;letter-spacing:.06em;color:var(--t3);padding:10px 14px 3px;text-transform:uppercase}
@@ -552,6 +556,7 @@ body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;over
       <div class="sp-ctx-item" onclick="spCtxClear()">清除格式</div>
     </div>
   </div>
+  <div class="sb-resizer" id="sb-resizer" title="拖动调整侧边栏宽度"></div>
 </nav>
 
 <!-- MAIN -->
@@ -1746,6 +1751,38 @@ function spCbToggle(el) {
   }
   saveStickyPad();
 }
+// 侧边栏拖拽调整宽度
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.querySelector('.sidebar');
+  const resizer = document.getElementById('sb-resizer');
+  if (!sidebar || !resizer) return;
+  const MIN_W = 180, MAX_W = 480;
+  // 恢复上次保存的宽度
+  const saved = parseInt(localStorage.getItem('td_sidebar_w'), 10);
+  if (saved && saved >= MIN_W && saved <= MAX_W) sidebar.style.width = saved + 'px';
+  let dragging = false;
+  resizer.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    dragging = true;
+    resizer.classList.add('sb-resizing');
+    document.body.classList.add('sb-resizing-active');
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    let w = e.clientX - sidebar.getBoundingClientRect().left;
+    if (w < MIN_W) w = MIN_W;
+    if (w > MAX_W) w = MAX_W;
+    sidebar.style.width = w + 'px';
+  });
+  document.addEventListener('mouseup', function() {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('sb-resizing');
+    document.body.classList.remove('sb-resizing-active');
+    localStorage.setItem('td_sidebar_w', parseInt(sidebar.style.width, 10));
+  });
+});
+
 // 便签区键盘事件
 document.addEventListener('DOMContentLoaded', function() {
   const pad = document.getElementById('sb-sticky-pad');
