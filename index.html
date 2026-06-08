@@ -978,7 +978,42 @@ let tasks = JSON.parse(localStorage.getItem('td_tasks')||'[]');
     console.log('[Todo dedup] Removed', before - tasks.length, 'duplicate(s)');
   }
 })();
-let lists = JSON.parse(localStorage.getItem('td_lists')||'[{"id":"default","name":"默认","color":"#64748b"},{"id":"work","name":"工作","color":"#2383e2"},{"id":"life","name":"生活","color":"#16a34a"}]');
+const DEFAULT_LISTS = [
+  {id:'zhuanxiang', name:'专项&思考',  color:'#8b5cf6'},
+  {id:'xunfang',    name:'寻访&电话',  color:'#16a34a'},
+  {id:'huiyi',      name:'会议',       color:'#e03e2d'},
+  {id:'zhoubao',    name:'周报月报',   color:'#d97706'},
+  {id:'shejiao',    name:'社交其他',   color:'#2383e2'}
+];
+let lists = JSON.parse(localStorage.getItem('td_lists')||JSON.stringify(DEFAULT_LISTS));
+// 分类迁移：把旧分类按名称映射到新 5 分类，保留任务归属
+(function migrateLists(){
+  if (localStorage.getItem('td_lists_v2')==='1') return; // 只迁移一次
+  // 旧名称/关键词 → 新分类 id
+  function mapTo(name){
+    const n = (name||'').replace(/\s/g,'');
+    if (/寻访|电话/.test(n)) return 'xunfang';
+    if (/会议/.test(n)) return 'huiyi';
+    if (/周报|月报/.test(n)) return 'zhoubao';
+    if (/专项|思考/.test(n)) return 'zhuanxiang';
+    if (/社交|其他|默认|工作|生活/.test(n)) return 'shejiao';
+    return 'shejiao'; // 其余全都归入社交其他
+  }
+  // 旧 listId → 新 id 的映射表（基于名称）
+  const oldMap = {};
+  lists.forEach(l => { oldMap[l.id] = mapTo(l.name); });
+  // 重套任务的 listId
+  let touched = false;
+  tasks.forEach(t => {
+    const newId = oldMap[t.listId] || mapTo('');
+    if (t.listId !== newId) { t.listId = newId; touched = true; }
+  });
+  // 替换为新的 5 分类
+  lists = DEFAULT_LISTS.map(l => ({...l}));
+  localStorage.setItem('td_lists', JSON.stringify(lists));
+  if (touched) localStorage.setItem('td_tasks', JSON.stringify(tasks));
+  localStorage.setItem('td_lists_v2','1');
+})();
 let notes = JSON.parse(localStorage.getItem('td_notes')||'[]');
 let appName = localStorage.getItem('td_appname') || '我的清单';
 let listsLabel = localStorage.getItem('td_listslabel') || '我的清单';
