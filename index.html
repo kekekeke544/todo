@@ -1662,7 +1662,35 @@ function saveStickyPad() {
 }
 function loadStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
-  if (el) el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
+  if (el) { el.innerHTML = localStorage.getItem('td_sticky_pad') || ''; normalizeStickyCheckboxes(el); }
+}
+// 修复历史内容：空勾选框紧跟一个文本块 → 把文字并入勾选框 span，使二者同排
+function normalizeStickyCheckboxes(pad) {
+  if (!pad) return;
+  let changed = false;
+  // 多遍合并，处理连续多个 checkbox+文本 的情况
+  for (let pass = 0; pass < 50; pass++) {
+    let mergedThisPass = false;
+    const items = pad.querySelectorAll('.sp-cb-item');
+    for (const item of items) {
+      const span = item.querySelector('span');
+      if (!span) continue;
+      const spanText = span.textContent.replace(/\u00a0/g, '').trim();
+      if (spanText) continue; // span 已有内容，不动
+      // span 为空：看下一个兄弟是不是普通文本块
+      const next = item.nextElementSibling;
+      if (!next || next.classList.contains('sp-cb-item')) continue;
+      const nextText = next.textContent.replace(/\u00a0/g, '').trim();
+      if (!nextText) continue; // 下一个也是空，跳过
+      // 把下一个块的内容搬进 span（保留加粗等富文本）
+      span.innerHTML = next.innerHTML;
+      next.remove();
+      mergedThisPass = true;
+      changed = true;
+    }
+    if (!mergedThisPass) break;
+  }
+  if (changed) saveStickyPad();
 }
 function spCmd(cmd) {
   document.getElementById('sb-sticky-pad').focus();
