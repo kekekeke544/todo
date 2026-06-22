@@ -19,6 +19,73 @@
   --r:8px;--r-sm:6px;--r-lg:12px;
   --font:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
 }
+/* Dark mode */
+body.dark{--bg:#1a1a1a;--sb:#222;--sb-hover:#2a2a2a;--sb-active:#333;--text:#e0e0e0;--t2:#999;--t3:#666;--border:#333;--hover:#252525;--accent:#5aaef4;--high:#f87171;--high-bg:#3b1111;--mid:#fbbf24;--mid-bg:#3b2f00;--low:#4ade80;--low-bg:#0a3d1a;--none:#666;--none-bg:#262626}
+body.dark .ws-icon{background:var(--text)}
+body.dark .rich-toolbar,body.dark .rich-editor{background:#1e1e1e;border-color:#333}
+body.dark .rich-btn{color:#aaa}
+body.dark .rich-btn:hover{background:#333;color:#e0e0e0}
+body.dark .rich-editor{color:#ddd}
+body.dark .sb-rich-toolbar{background:var(--sb);border-color:var(--border)}
+body.dark .modal{background:#2a2a2a;color:#e0e0e0}
+body.dark .modal input[type="text"],body.dark .modal textarea,body.dark .modal select{background:#333;color:#e0e0e0;border-color:#444}
+body.dark .overlay{background:rgba(0,0,0,.6)}
+body.dark .dt-popup,body.dark .prio-dropdown,body.dark .list-sel-dd,body.dark .repeat-dd,body.dark .custom-repeat-panel{background:#2a2a2a;border-color:#444}
+body.dark .prio-opt:hover,body.dark .list-sel-opt:hover,body.dark .repeat-opt:hover{background:#333}
+body.dark .time-slot:hover{background:#333;color:#e0e0e0}
+body.dark .time-slot.selected{background:#e0e0e0;color:#1a1a1a}
+body.dark .note-card{background:#252525;border-color:#333}
+body.dark .note-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.3)}
+body.dark .header-bg-panel{background:#2a2a2a;border-color:#444}
+body.dark .hbp-upload-btn{border-color:#444;color:#999}
+body.dark .hbp-upload-btn:hover{border-color:#666;color:#e0e0e0}
+body.dark .chip{border-color:#444;color:#999}
+body.dark .chip:hover{background:#333;color:#e0e0e0;border-color:#555}
+body.dark .chip.active{background:#e0e0e0;color:#1a1a1a;border-color:#e0e0e0}
+body.dark .add-bar{background:var(--bg);border-color:#444}
+body.dark .add-bar:focus-within{border-color:#666;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
+body.dark .add-task-input{color:#e0e0e0;background:transparent}
+body.dark .add-btn{background:#e0e0e0;color:#1a1a1a}
+body.dark .t-check{border-color:#555}
+body.dark .t-check:hover{border-color:#888}
+body.dark .t-check.checked{background:#888;border-color:#888}
+body.dark .task-item:hover{background:var(--hover)}
+body.dark .task-item+.task-item{border-top-color:#333}
+body.dark .task-item:hover+.task-item{border-top-color:transparent}
+body.dark .sp-ctx-menu{background:#2a2a2a;border-color:#444}
+body.dark .sp-ctx-item:hover{background:#333}
+body.dark .goals-month-block{background:var(--bg);border-color:var(--border)}
+body.dark .goals-ng-item:hover{background:var(--hover)}
+body.dark .note-rtb{background:var(--hover);border-color:var(--border)}
+body.dark .note-body-editor{color:var(--text)}
+body.dark .note-toolbar button{color:var(--t2)}
+body.dark .sb-resizer:hover,body.dark .sb-resizer.sb-resizing{background:var(--accent)}
+body.dark .wk-day-block{border-color:var(--border)}
+body.dark .wk-day-hd{background:var(--hover)}
+body.dark .wk-day-block.today .wk-day-hd{background:var(--text)}
+body.dark .wk-day-block.today .wk-day-hd *{color:var(--bg)!important}
+body.dark .wk-task-row:hover{background:var(--hover)}
+body.dark .wk-task-row{border-top-color:var(--border)}
+
+/* Tag pills */
+.t-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:500;margin-right:3px;background:#eef;background:#e8e0f0;color:#6b21a8;white-space:nowrap}
+body.dark .t-tag{background:#2d1f3d;color:#c4b5fd}
+
+/* Sidebar backup & dark-mode buttons */
+.sb-bottom{border-top:1px solid var(--border);padding:8px 10px;flex-shrink:0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sb-bottom-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:5px 10px;font-size:12px;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all .1s;display:flex;align-items:center;gap:4px}
+.sb-bottom-btn:hover{background:var(--sb-hover);color:var(--text);border-color:#bbb}
+
+/* Dark mode toggle */
+.dark-toggle{background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:5px;color:var(--t2);transition:all .1s;line-height:1}
+.dark-toggle:hover{background:var(--sb-hover);color:var(--text)}
+
+/* Tag filter chip */
+.tag-filter-chip{padding:3px 10px;border-radius:14px;font-size:11.5px;border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--t2);transition:all .12s;user-select:none;font-family:var(--font)}
+.tag-filter-chip:hover{background:var(--sb-hover);color:var(--text);border-color:#ccc}
+.tag-filter-chip.active{background:#e8e0f0;color:#6b21a8;border-color:#c4b5fd}
+body.dark .tag-filter-chip.active{background:#2d1f3d;color:#c4b5fd;border-color:#6b21a8}
+
 body{font-family:var(--font);background:var(--bg);display:flex;height:100vh;overflow:hidden;color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
 /* ── SIDEBAR ── */
@@ -558,6 +625,12 @@ body.sb-resizing-active .sidebar{transition:none}
       <div class="sp-ctx-item" onclick="spCtxClear()">清除格式</div>
     </div>
   </div>
+  <div class="sb-bottom">
+    <button class="dark-toggle" id="dark-toggle" onclick="toggleDarkMode()" title="切换深色模式">🌙</button>
+    <button class="sb-bottom-btn" onclick="exportData()" title="导出数据为JSON文件">📤 导出</button>
+    <button class="sb-bottom-btn" onclick="importData()" title="从JSON文件导入数据">📥 导入</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="onImportFile(this)"/>
+  </div>
   <div class="sb-resizer" id="sb-resizer" title="拖动调整侧边栏宽度"></div>
 </nav>
 
@@ -593,7 +666,7 @@ body.sb-resizing-active .sidebar{transition:none}
     <div class="add-wrap">
       <div class="add-bar">
         <div class="add-plus">+</div>
-        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务… (可拖入链接)" onkeydown="if(event.key==='Enter')addTask()" ondragover="event.preventDefault()" ondrop="onDropLink(event,'task-input')" onpaste="onPasteAutoLink(event,'task-input')"/>
+        <input type="text" class="add-task-input" id="task-input" placeholder="添加任务… 用 # 标签 分类，如 #工作 #学习" onkeydown="if(event.key==='Enter')addTask()" ondragover="event.preventDefault()" ondrop="onDropLink(event,'task-input')" onpaste="onPasteAutoLink(event,'task-input')"/>
         <div class="add-sep"></div>
         <!-- 优先级 -->
         <div class="prio-wrapper" id="prio-wrapper">
@@ -724,6 +797,7 @@ body.sb-resizing-active .sidebar{transition:none}
       <button class="chip" data-f="high" onclick="setFilter('high',this)">紧急优先</button>
       <button class="chip" data-f="overdue" onclick="setFilter('overdue',this)">已逾期</button>
       <button class="chip" data-f="done" onclick="setFilter('done',this)">已完成</button>
+      <span id="tag-filter-bar"></span>
     </div>
     <div class="divider"></div>
     <div class="task-list" id="task-list"></div>
@@ -827,6 +901,9 @@ body.sb-resizing-active .sidebar{transition:none}
     <input type="text" id="edit-title" placeholder="任务名称" onkeydown="if(event.key==='Enter')saveEdit()"/>
     <label>所属清单</label>
     <select id="edit-list" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);cursor:pointer;outline:none"></select>
+    <label>标签</label>
+    <input type="text" id="edit-tags" placeholder="用 # 分隔标签，如 #工作 #学习" oninput="previewEditTags()"/>
+    <div id="edit-tags-preview" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px"></div>
     <label>内容备注</label>
     <textarea id="edit-body" placeholder="详细描述、备注… (可拖入链接)" ondragover="event.preventDefault()" ondrop="onDropLink(event,'edit-body')" onpaste="onPasteAutoLink(event,'edit-body')"></textarea>
     <div class="edit-row">
@@ -1822,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const sidebar = document.querySelector('.sidebar');
   const resizer = document.getElementById('sb-resizer');
   if (!sidebar || !resizer) return;
-  const MIN_W = 180, MAX_W = 480;
+  const MIN_W = 200, MAX_W = 500;
   // 恢复上次保存的宽度
   const saved = parseInt(localStorage.getItem('td_sidebar_w'), 10);
   if (saved && saved >= MIN_W && saved <= MAX_W) sidebar.style.width = saved + 'px';
@@ -2492,15 +2569,18 @@ function addTask() {
   const inp = document.getElementById('task-input');
   const title = inp.value.trim();
   if (!title) return;
+  const tags = parseTags(title);
+  const cleanT = cleanTitle(title) || title;
   const dtVal = buildDTValue(addDT.date, addDT.hour, addDT.min);
   const _r = fixTimeRange(dtVal, buildDTValue(addDT.endDate||addDT.date, addDT.endHour, addDT.endMin) || '');
   tasks.unshift({
-    id: Date.now(), title, done: false,
+    id: Date.now(), title: cleanT, done: false,
     priority: addPrio,
     dt: _r.dt,
     dtEnd: _r.dtEnd,
     listId: addListId,
     repeat: addRepeat,
+    tags: tags.length ? tags : undefined,
     createdAt: todayStr()
   });
   save();
@@ -2529,7 +2609,9 @@ function toggleTask(id) {
         tasks.push({
           id: Date.now(), title: t.title, done: false,
           priority: t.priority, dt: nextDt, listId: t.listId,
-          repeat: t.repeat, createdAt: todayStr()
+          repeat: t.repeat, createdAt: todayStr(),
+          tags: t.tags ? [...t.tags] : undefined,
+          body: t.body || ''
         });
       }
     }
@@ -2600,6 +2682,8 @@ function openEditModal(id) {
   editingTaskId = id;
   document.getElementById('edit-title').value = t.title;
   document.getElementById('edit-body').value = t.body || '';
+  document.getElementById('edit-tags').value = (t.tags||[]).map(tg=>'#'+tg).join(' ');
+  previewEditTags();
   document.getElementById('edit-prio').value = (!t.priority || t.priority === 'none') ? 'low' : t.priority;
   // 重置自定义循环状态
   editCustomRepeatVal = '';
@@ -2743,6 +2827,14 @@ function saveEdit() {
   const title = document.getElementById('edit-title').value.trim();
   if (title) t.title = title;
   t.body     = document.getElementById('edit-body').value;
+  // Tags
+  const tagsInput = document.getElementById('edit-tags').value.trim();
+  if (tagsInput) {
+    t.tags = parseTags(tagsInput);
+    if (t.tags.length === 0) delete t.tags;
+  } else {
+    delete t.tags;
+  }
   t.priority = document.getElementById('edit-prio').value;
   const repVal = document.getElementById('edit-repeat').value;
   t.repeat   = repVal === 'custom' ? (editCustomRepeatVal || 'none') : repVal;
@@ -2809,6 +2901,13 @@ function getVisible() {
     const pa = pO[a.priority]??3, pb = pO[b.priority]??3;
     return pa - pb;
   });
+  // Tag filter
+  if (tagFilter) {
+    r = r.filter(t => {
+      const tags = t.tags || parseTags(t.title);
+      return tags.includes(tagFilter);
+    });
+  }
   return r;
 }
 
@@ -2836,7 +2935,7 @@ function getRepeatLabel(repeat) {
   return REPEAT_LABELS[repeat]||repeat;
 }
 
-function render() { renderSmartList(); renderSidebar(); renderTasks(); updateHeader(); }
+function render() { renderSmartList(); renderSidebar(); renderTasks(); renderTagFilter(); updateHeader(); }
 function updateCounts() { renderSmartList(); renderSidebar(); }
 
 function updateHeader() {
@@ -3130,6 +3229,8 @@ function renderTasks() {
     const lTag = lObj ? `<span class="tag-list">${listDot(lObj)} ${escHtml(lObj.name)}</span>` : '';
     const rLabel = getRepeatLabel(t.repeat);
     const rTag = rLabel ? `<span class="tag-repeat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> ${rLabel}</span>` : '';
+    const taskTags = t.tags || [];
+    const tagsHtml = taskTags.length ? taskTags.map(tg => `<span class="t-tag">#${escHtml(tg)}</span>`).join('') : '';
     return `<div class="task-item ${t.done?'done-item':''}" draggable="true" data-id="${t.id}" id="task-${t.id}">
       <div class="t-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
       <div class="t-body">
@@ -3145,7 +3246,7 @@ function renderTasks() {
           </div>
         </div>
         ${t.body ? `<div class="t-body-preview">${linkify(t.body)}</div>` : ''}
-        <div class="t-meta">${dTag}${rTag}${lTag}</div>
+        <div class="t-meta">${tagsHtml}${dTag}${rTag}${lTag}</div>
       </div>
     </div>`;
   }).join('');
@@ -3194,6 +3295,7 @@ function initDrag() {
 // ══════════════════════════════════════
 function switchView(view, el) {
   curView = view;
+  tagFilter = '';
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
   curFilter = 'active';
@@ -3234,6 +3336,7 @@ function switchView(view, el) {
 }
 function switchViewList(id, el) {
   curView = `list:${id}`;
+  tagFilter = '';
   document.querySelectorAll('.sb-item,.sb-list-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
   curFilter = 'active';
@@ -3394,7 +3497,161 @@ document.getElementById('list-modal').addEventListener('click', function(e) { if
 document.getElementById('edit-modal').addEventListener('click',  function(e) { if (e.target===this) hideEditModal(); });
 
 // ══════════════════════════════════════
-// INIT
+// DARK MODE
+// ══════════════════════════════════════
+let darkMode = localStorage.getItem('td_dark') === '1';
+function applyDarkMode() {
+  document.body.classList.toggle('dark', darkMode);
+  const btn = document.getElementById('dark-toggle');
+  if (btn) btn.textContent = darkMode ? '☀️' : '🌙';
+}
+function toggleDarkMode() {
+  darkMode = !darkMode;
+  localStorage.setItem('td_dark', darkMode ? '1' : '0');
+  applyDarkMode();
+}
+
+// ══════════════════════════════════════
+// TAGS
+// ══════════════════════════════════════
+let tagFilter = ''; // current active tag filter
+
+// Parse tags from title: extract #tag occurrences
+function parseTags(title) {
+  const matches = title.match(/#([^#\s]+)/g);
+  if (!matches) return [];
+  return matches.map(t => t.slice(1));
+}
+
+// Clean tags from title (remove #tag)
+function cleanTitle(title) {
+  return title.replace(/\s*#([^#\s]+)/g, '').trim();
+}
+
+// Get all unique tags from tasks
+function getAllTags() {
+  const tagSet = new Set();
+  tasks.forEach(t => {
+    const tags = t.tags || parseTags(t.title);
+    tags.forEach(tag => tagSet.add(tag));
+  });
+  return Array.from(tagSet).sort();
+}
+
+// Render tag filter bar
+function renderTagFilter() {
+  const bar = document.getElementById('tag-filter-bar');
+  if (!bar) return;
+  const allTags = getAllTags();
+  if (allTags.length === 0) { bar.innerHTML = ''; return; }
+  bar.innerHTML = allTags.map(tag =>
+    `<span class="tag-filter-chip ${tagFilter === tag ? 'active' : ''}" onclick="toggleTagFilter('${escHtml(tag)}')">#${escHtml(tag)}</span>`
+  ).join('');
+}
+
+function toggleTagFilter(tag) {
+  tagFilter = tagFilter === tag ? '' : tag;
+  render();
+}
+
+// Preview tags in edit modal
+function previewEditTags() {
+  const input = document.getElementById('edit-tags');
+  const preview = document.getElementById('edit-tags-preview');
+  if (!input || !preview) return;
+  const tags = parseTags('#' + input.value.replace(/#/g, ' #'));
+  preview.innerHTML = tags.map(t => `<span class="t-tag">#${escHtml(t)}</span>`).join('');
+}
+
+// ══════════════════════════════════════
+// NOTIFICATION (due today)
+// ══════════════════════════════════════
+function checkDueToday() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  if (Notification.permission !== 'granted') return;
+  const today = todayStr();
+  const dueToday = tasks.filter(t => !t.done && t.dt && t.dt.startsWith(today));
+  if (dueToday.length > 0) {
+    new Notification('Todo 提醒', {
+      body: `今天有 ${dueToday.length} 个任务到期`,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text y="20" font-size="20">✅</text></svg>'
+    });
+  }
+}
+
+// ══════════════════════════════════════
+// DATA BACKUP (export / import)
+// ══════════════════════════════════════
+function exportData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    tasks,
+    lists,
+    notes,
+    goals,
+    goalsV2,
+    goalsNG,
+    goalsColBg,
+    stickyPad: localStorage.getItem('td_sticky_pad') || '',
+    richNote: localStorage.getItem('td_rich_note') || '',
+    appName,
+    listsLabel,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  a.href = url;
+  a.download = `todo-backup-${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  document.getElementById('import-file').click();
+}
+
+function onImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.tasks && !data.lists) {
+        alert('无效的备份文件');
+        return;
+      }
+      if (!confirm('导入将覆盖当前所有数据，确定继续吗？')) return;
+      if (data.tasks) { tasks = data.tasks; localStorage.setItem('td_tasks', JSON.stringify(tasks)); }
+      if (data.lists) { lists = data.lists; localStorage.setItem('td_lists', JSON.stringify(lists)); }
+      if (data.notes) { notes = data.notes; localStorage.setItem('td_notes', JSON.stringify(notes)); }
+      if (data.goals) { goals = data.goals; localStorage.setItem('td_goals', JSON.stringify(goals)); }
+      if (data.goalsV2) { goalsV2 = data.goalsV2; localStorage.setItem('td_goalsv2', JSON.stringify(goalsV2)); }
+      if (data.goalsNG) { goalsNG = data.goalsNG; localStorage.setItem('td_goals_ng', JSON.stringify(goalsNG)); }
+      if (data.goalsColBg) { goalsColBg = data.goalsColBg; localStorage.setItem('td_goals_col_bg', JSON.stringify(goalsColBg)); }
+      if (data.stickyPad) localStorage.setItem('td_sticky_pad', data.stickyPad);
+      if (data.richNote) localStorage.setItem('td_rich_note', data.richNote);
+      if (data.appName) { appName = data.appName; localStorage.setItem('td_appname', appName); }
+      if (data.listsLabel) { listsLabel = data.listsLabel; localStorage.setItem('td_listslabel', listsLabel); }
+      loadStickyPad();
+      richLoad();
+      render();
+      alert('导入成功！');
+    } catch(err) {
+      alert('导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = ''; // reset for re-import
+}
+
+// ══════════════════════════════════════
+// INIT (extended)
 // ══════════════════════════════════════
 // 确保 addListId 有效
 if (!lists.find(l => l.id === addListId)) addListId = lists[0]?.id || 'default';
@@ -3437,6 +3694,8 @@ if (!localStorage.getItem('td_goalsv2')) {
 render();
 loadStickyPad();
 initHeaderBg();
+applyDarkMode();
+checkDueToday();
 
 // 点击空白关闭 header bg panel
 document.addEventListener('click', e => {
