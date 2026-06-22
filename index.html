@@ -613,6 +613,7 @@ body.sb-resizing-active .sidebar{transition:none}
       <button class="rich-btn" title="勾选框" onclick="spInsertCheckbox()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 16 9"/></svg></button>
       <div class="rich-sep"></div>
       <button class="rich-btn" title="整理：勾选框与文字同排" onclick="spTidyCheckboxes()" style="color:var(--t3)">⚖</button>
+      <button class="rich-btn" title="自动识别链接" onclick="const el=document.getElementById('sb-sticky-pad');if(stickyAutoLinkify(el))saveStickyPad();" style="color:var(--t3)">🔗</button>
       <button class="rich-btn" title="清除格式" onclick="spCmd('removeFormat')" style="color:var(--t3)">Tx</button>
     </div>
     <div id="sb-sticky-pad" contenteditable="true" spellcheck="false" data-placeholder="随手记录…" oninput="saveStickyPad()" oncontextmenu="onStickyPadCtx(event)" onmousedown="handleCtxLinkClick(event)"></div>
@@ -1782,13 +1783,47 @@ function resetMotto(e) {
 }
 
 // ── 便签 ──
+function stickyAutoLinkify(el) {
+  if (!el) return;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+  const urlRe = /(https?:\/\/[^\s<>"']+)/g;
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  let changed = false;
+  nodes.forEach(tn => {
+    if (tn.parentElement && tn.parentElement.tagName === 'A') return;
+    if (!urlRe.test(tn.textContent)) return;
+    urlRe.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while ((m = urlRe.exec(tn.textContent)) !== null) {
+      if (m.index > last) frag.appendChild(document.createTextNode(tn.textContent.slice(last, m.index)));
+      const a = document.createElement('a');
+      a.href = m[1]; a.textContent = m[1];
+      a.target = '_blank'; a.rel = 'noopener';
+      frag.appendChild(a);
+      last = m.index + m[0].length;
+    }
+    if (last < tn.textContent.length) frag.appendChild(document.createTextNode(tn.textContent.slice(last)));
+    tn.parentNode.replaceChild(frag, tn);
+    changed = true;
+  });
+  return changed;
+}
 function saveStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
-  if (el) localStorage.setItem('td_sticky_pad', el.innerHTML);
+  if (el) {
+    stickyAutoLinkify(el);
+    localStorage.setItem('td_sticky_pad', el.innerHTML);
+  }
 }
 function loadStickyPad() {
   const el = document.getElementById('sb-sticky-pad');
-  if (el) { el.innerHTML = localStorage.getItem('td_sticky_pad') || ''; normalizeStickyCheckboxes(el); }
+  if (el) {
+    el.innerHTML = localStorage.getItem('td_sticky_pad') || '';
+    stickyAutoLinkify(el);
+    normalizeStickyCheckboxes(el);
+  }
 }
 // 修复历史内容：空勾选框 + 后面的文本块 → 把文字并入勾选框 span，使二者同排
 // 强壮版：自动补 span、跳过中间空行、合并到下一个勾选框之前的所有文本
