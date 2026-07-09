@@ -2730,17 +2730,26 @@ function openEditModal(id) {
   } else {
     document.getElementById('edit-repeat').value = t.repeat || 'none';
   }
-  // 解析开始时间
+  // 解析开始时间（无时间则默认当前时间，避免滚轮定位到 00:00 容易选错）
   let sDate='', sH='', sM='';
   if (t.dt) {
     const d = new Date(t.dt);
     sDate = t.dt.slice(0,10);
     sH = p2(d.getHours());
     sM = EDIT_MINS.reduce((a,b)=>Math.abs(parseInt(b)-d.getMinutes())<Math.abs(parseInt(a)-d.getMinutes())?b:a);
+  } else {
+    const hm = nowHM();
+    sDate = todayStr();
+    sH = hm.h;
+    sM = hm.m;
   }
   // 解析结束时间（没有则+30min）
   let eDate='', eH='', eM='';
-  const dtEnd = t.dtEnd || (t.dt ? (()=>{const d=new Date(t.dt);d.setMinutes(d.getMinutes()+30);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;})() : '');
+  const dtEnd = t.dtEnd || (()=>{
+    const base = t.dt ? new Date(t.dt) : new Date();
+    base.setMinutes(base.getMinutes()+30);
+    return `${base.getFullYear()}-${p2(base.getMonth()+1)}-${p2(base.getDate())}T${p2(base.getHours())}:${p2(base.getMinutes())}`;
+  })();
   if (dtEnd) {
     const d = new Date(dtEnd);
     eDate = dtEnd.slice(0,10);
