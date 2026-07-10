@@ -30,20 +30,20 @@
   --border:#dddbd5;
   --hover:#eeedea;
 
-  /* Accent — rich violet-blue */
-  --accent:#6c63ff;
-  --accent-light:#a59dff;
-  --accent-soft:rgba(108,99,255,.08);
+  /* Accent — muted warm violet */
+  --accent:#7d6b8a;
+  --accent-light:#a498b0;
+  --accent-soft:rgba(125,107,138,.1);
 
-  /* Priority palette — softer tones */
-  --high:#ef4444;
-  --high-bg:#fef2f2;
-  --mid:#f59e0b;
-  --mid-bg:#fffbeb;
-  --low:#22c55e;
-  --low-bg:#f0fdf4;
-  --none:#94a3b8;
-  --none-bg:#f8fafc;
+  /* Priority palette — Morandi tones, warm & muted */
+  --high:#b33a3a;
+  --high-bg:#f5e8e7;
+  --mid:#8b6530;
+  --mid-bg:#f3ede4;
+  --low:#3d7a50;
+  --low-bg:#e8f0ea;
+  --none:#7a7f8c;
+  --none-bg:#eeeff1;
 
   /* Radii */
   --r:10px;
@@ -62,7 +62,7 @@
   /* Glass & gradient */
   --glass:rgba(255,255,255,.65);
   --glass-border:rgba(255,255,255,.4);
-  --gradient-accent:linear-gradient(135deg,#6c63ff 0%,#a78bfa 50%,#818cf8 100%);
+  --gradient-accent:linear-gradient(135deg,#7d6b8a 0%,#9b8ea8 50%,#8a7fa0 100%);
   --gradient-warm:linear-gradient(180deg,#e5e3dd 0%,#dedcd5 100%);
 }
 
@@ -77,17 +77,17 @@ body.dark{
   --t3:#606080;
   --border:#282840;
   --hover:#1e1e32;
-  --accent:#8b83ff;
-  --accent-light:#b0a8ff;
-  --accent-soft:rgba(139,131,255,.12);
-  --high:#f87171;
-  --high-bg:rgba(248,113,113,.2);
-  --mid:#fbbf24;
-  --mid-bg:rgba(251,191,36,.18);
-  --low:#4ade80;
-  --low-bg:rgba(74,222,128,.18);
+  --accent:#a498b8;
+  --accent-light:#b8aec8;
+  --accent-soft:rgba(164,152,184,.15);
+  --high:#e87070;
+  --high-bg:rgba(232,112,112,.15);
+  --mid:#d4a54a;
+  --mid-bg:rgba(212,165,74,.14);
+  --low:#5cc07a;
+  --low-bg:rgba(92,192,122,.14);
   --none:#8888a0;
-  --none-bg:rgba(96,96,128,.18);
+  --none-bg:rgba(136,136,160,.14);
   --shadow-xs:0 1px 2px rgba(0,0,0,.25);
   --shadow-sm:0 2px 8px rgba(0,0,0,.3);
   --shadow-md:0 4px 16px rgba(0,0,0,.35);
@@ -146,12 +146,12 @@ body.dark .wk-task-row{border-top-color:var(--border)}
 .t-tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:500;margin-right:3px;background:linear-gradient(135deg,#f0ecff,#ede4fb);color:#6b21a8;white-space:nowrap;transition:all .15s}
 .t-tag:hover{transform:translateY(-1px);box-shadow:var(--shadow-xs)}
 body.dark .t-tag{background:linear-gradient(135deg,#2d1f3d,#301f42);color:#c4b5fd}
-body.dark .tag-repeat{background:linear-gradient(135deg,#1e1545,#2a1f4e);color:#a78bfa;border:1px solid rgba(139,92,246,.2)}
-body.dark .tag{font-weight:700}
-body.dark .tag-high{background:rgba(248,113,113,.22);color:#fca5a5}
-body.dark .tag-mid{background:rgba(251,191,36,.2);color:#fde68a}
-body.dark .tag-low{background:rgba(74,222,128,.2);color:#86efac}
-body.dark .tag-none{background:rgba(136,136,160,.2);color:#a8a8c0}
+body.dark .tag-repeat{background:rgba(100,80,130,.2);color:#b0a0c0;border:1px solid rgba(140,120,170,.15)}
+body.dark .tag{font-weight:600}
+body.dark .tag-high{background:rgba(232,112,112,.16);color:#e8a0a0}
+body.dark .tag-mid{background:rgba(212,165,74,.15);color:#d4c090}
+body.dark .tag-low{background:rgba(92,192,122,.15);color:#90c8a0}
+body.dark .tag-none{background:rgba(136,136,160,.15);color:#a0a0b8}
 body.dark .tag-date{color:#9494b0}
 body.dark .tag-date.overdue{color:#fca5a5;font-weight:600}
 body.dark .tag-list{color:#9494b0}
@@ -378,9 +378,9 @@ body.sb-resizing-active .sidebar{transition:none}
 .tag-low{background:var(--low-bg);color:var(--low)}
 .tag-none{background:var(--none-bg);color:var(--none)}
 .tag-date{font-size:12px;color:var(--t3);display:flex;align-items:center;gap:3px}
-.tag-date.overdue{color:var(--high);font-weight:600;background:var(--high-bg);padding:2px 8px;border-radius:6px}
+.tag-date.overdue{color:#b33a3a;font-weight:600;background:#f5e8e7;padding:2px 8px;border-radius:6px}
 .tag-list{font-size:11.5px;color:var(--t3)}
-.tag-repeat{font-size:11px;color:#7c3aed;background:linear-gradient(135deg,#f5f3ff,#ede9fe);padding:2px 7px;border-radius:6px;display:flex;align-items:center;gap:2px}
+.tag-repeat{font-size:11px;color:#7a6b8a;background:#eee9f0;padding:2px 7px;border-radius:6px;display:flex;align-items:center;gap:2px}
 
 /* Inline priority label */
 .t-title-row{display:flex;align-items:center;gap:6px;min-width:0}
