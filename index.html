@@ -3391,7 +3391,7 @@ function renderTasks() {
     const dtEndStr = t.dtEnd ? fmtDT(t.dtEnd) : '';
     const dtRangeStr = dtStr && dtEndStr ? `${dtStr} → ${dtEndStr.includes(dtStr.slice(0,10)) ? dtEndStr.slice(-5) : dtEndStr}` : dtStr;
     const dTag = dtRangeStr
-      ? `<span class="tag-date ${ov?'overdue':''}">📅 ${escHtml(dtRangeStr)}${ov?' · 逾期':''}</span>` : '';
+      ? `<span class="tag-date ${ov?'overdue':''}">${escHtml(dtRangeStr)}${ov?' · 逾期':''}</span>` : '';
     const lObj = listMap[t.listId];
     const lTag = lObj ? `<span class="tag-list">${listDot(lObj)} ${escHtml(lObj.name)}</span>` : '';
     const rLabel = getRepeatLabel(t.repeat);
